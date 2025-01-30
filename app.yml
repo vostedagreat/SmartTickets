@@ -1,0 +1,5 @@
+runtime: python39  # Use Python 3.9 environment
+entrypoint: gunicorn -b :$PORT app:app  # Use Gunicorn to run your app
+
+env_variables:
+  GOOGLE_CLOUD_PROJECT: cool-citadel-449418-k2  # Replace with your GCP project ID
