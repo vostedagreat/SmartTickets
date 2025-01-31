@@ -2,6 +2,10 @@
 
 This project allows users to generate QR codes that encode ticket information, which is then sent to a specified email address. The backend is built using Python with Flask, and it utilizes Gmail for email sending. The frontend allows users to input their email and ticket information to generate the QR code and view it directly in the browser.
 
+## Live demo
+
+[demo](https://cool-citadel-449418-k2.uc.r.appspot.com)
+
 ## Features
 
 - Users can enter text (such as ticket information) and email address.
