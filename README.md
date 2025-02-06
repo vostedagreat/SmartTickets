@@ -24,7 +24,7 @@ Make sure you have Python and pip installed on your machine.
 - Python 3.x
 - pip (Python package installer)
 
-You will also need a Gmail account for sending emails. Set up your Gmail SMTP credentials using the `dotenv` package to load environment variables securely.
+You will also need a Gmail account for sending emails. Set up your Gmail SMTP credentials using the `dotenv` package to load the environment variables securely.
 
 ### Installing
 
