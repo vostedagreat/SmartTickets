@@ -117,7 +117,9 @@ def send_qr():
     if send_email(user_email, "Your Event Ticket",
                   "Here is your event ticket with QR code.",
                   qr_url):
-        return jsonify({"message": "QR code with ticket info sent successfully!"})
+        return jsonify({
+            "message": "QR code with ticket info sent successfully!"
+        })
     else:
         return jsonify({"error": "Failed to send email"}), 500
 
