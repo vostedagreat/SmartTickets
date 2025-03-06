@@ -125,4 +125,4 @@ def send_qr():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug="true")
