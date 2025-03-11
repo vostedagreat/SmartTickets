@@ -17,7 +17,8 @@ if credentials_path:
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
     print("[INFO] GOOGLE_APPLICATION_CREDENTIALS loaded successfully.")
 else:
-    raise EnvironmentError("[ERROR] GOOGLE_APPLICATION_CREDENTIALS is not set.")
+    raise EnvironmentError(
+        "[ERROR] GOOGLE_APPLICATION_CREDENTIALS is not set.")
 
 app = Flask(__name__)
 
@@ -110,7 +111,7 @@ def send_qr():
     try:
         data = request.get_json()
         print(f"[INFO] Received request data: {data}")
-        
+
         user_email = data.get("email")
         ticket_info = data.get("ticket_info")
 
