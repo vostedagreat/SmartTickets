@@ -7,7 +7,11 @@ SmartTickets is a ticketing system that generates QR codes for event tickets and
 - **Sharon (Frontend Engineer)** – Develops the user interface for interacting with the system.  
 - **Josiah (Backend Engineer)** – Implements QR code generation and core logic.  
 - **Melvin (Database Engineer)** – Handles ticket data storage and retrieval.  
-- **Francis (UI/UX Designer)** – Designs the user experience and interface flow.  
+- **Francis (UI/UX Designer)** – Designs the user experience and interface flow.
+- **Sammy (QA Tester)** - Designs and implements test cases.
+- **Chantal (Product Owner)**
+- **Steve (Scrum Master)**
+- **George (Product Manager)**
 
 ## 🚀 Live Demo  
 
