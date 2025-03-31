@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | USIU Smart Tickets</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='signup.css') }}">
+
+    <script>
+         function goToLogin() {
+            window.location.href = "/login";  // Redirect to the signup page
+        }
+
+    </script>
+
+</head>
+
+<body>
+    <div class="main-content">
+        
+
+        <div class="signup-section">
+            <h2 class="bluetext" id="usiu">USIU</h2>
+            <h2 class="yellowtext" id="events">Events</h2>
+
+            <h5>Sign up and create your account</h5>
+            <form>
+                <div class="form-section">
+
+                    <label for="first_name">First Name:</label>
+                    <br>
+                    <input type="text" id="first_name" name="first_name" placeholder="First Name">
+
+                    <br>
+                    <label for="last_name">Last Name:</label>
+                    <br>
+                    <input type="text" id="last_name" name="last_name" placeholder="Last Name">
+
+                </div>
+
+                <div class="form-section">
+            
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="Email">
+
+                    <br>
+                    <label for="phone">Mobile No:</label>
+                    <input type="text" id="phone" name="phone" placeholder="Phone Number">
+                </div>
+
+                <div class="form-section">
+
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Password">
+
+                    <br>
+                    <label for="confirm_password">Confirm Password</label>  
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm Password">
+                </div>
+
+                <br>
+
+                <label for="degree">Degree:</label>
+                <input type="text" id="degree" name="degree" placeholder="Degree">
+
+                <button id="signup" type="submit">Sign Up</button>
+                
+            </form>
+        </div>
+
+        <div class="image-area">
+            <img id="signup-image" src="{{ url_for('static', filename='images/signup2.png') }}" alt="signup_image">
+
+        </div>
+
+    </div>
+
+</body>
