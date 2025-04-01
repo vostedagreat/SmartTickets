@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 import qrcode
 import io
 import requests
+import firebase_admin
+from firebase_admin import credentials, firestore, auth
 
 # Load environment variables from .env file
 load_dotenv()
@@ -147,6 +149,81 @@ def send_qr():
         print(f"[ERROR] Unexpected error in /send_qr: {e}")
         return jsonify({"error": str(e)}), 500
 
+# Initialize Firebase
+cred = credentials.Certificate("serviceAccountKey.json")
+firebase_admin.initialize_app(cred)
+
+#Set up Firestore client
+db = firestore.client()
+print("[INFO] Firebase Initialized successfully.")
+
+#Test Firebase Connection
+@app.route("/test_firebase", methods=["GET"])
+def test_firebase():
+    try:
+        db.collection("test_collection").add({"message": "Hello, Firebase!"})
+        return "Test document added to Firestore successfully!", 200
+    except Exception as e:
+        return f"Error adding test document: {str(e)}", 500
+
+#Signup Route
+@app.route("/signup", methods=["POST"])
+def signup():
+    try:
+        # Retrieve user data from the request
+        data = request.get_json()
+        email = data["email"]
+        password = data["password"]
+        first_name = data["first_name"]
+        last_name = data["last_name"]
+
+        # Create the user in Firebase Authentication
+        user = auth.create_user(
+            email=email,
+            password=password,
+            display_name=f"{first_name} {last_name}"
+        )
+        print(f"[SUCCESS] User created with UID: {user.uid}")
+
+        # Store user data in Firestore
+        db.collection("users").document(user.uid).set({
+            "first_name": first_name,
+            "last_name": last_name,
+            "email": email,
+        })
+
+        return jsonify({"message": "Signup successful"}), 201
+    except Exception as e:
+        print(f"[ERROR] Signup failed: {e}")
+        return jsonify({"error": str(e)}), 400
+    
+#Login route
+@app.route("/login", methods=["POST"])
+def login():
+    try:
+        # Retrieve login data from the request
+        data = request.get_json()
+        email = data["email"]
+        password = data["password"]
+
+        # Authenticate the user
+        user = auth.get_user_by_email(email)
+        print(f"[INFO] User logged in with UID: {user.uid}")
+
+        return jsonify({
+            "message": "Login successful",
+            "user": {
+                "uid": user.uid,
+                "email": user.email,
+                "name": user.display_name
+            }
+        }), 200
+    except firebase_admin.auth.UserNotFoundError:
+        print("[ERROR] User not found.")
+        return jsonify({"error": "User not found"}), 404
+    except Exception as e:
+        print(f"[ERROR] Login failed: {e}")
+        return jsonify({"error": str(e)}), 400
 
 if __name__ == "__main__":
     print("[INFO] Starting Flask application...")
