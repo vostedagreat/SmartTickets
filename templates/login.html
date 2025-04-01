@@ -8,6 +8,10 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
 
     <script>
+         function goToAdmin() {
+            console.log("Redirecting to admin dashboard page...");  // Log message for debugging
+            window.location.href = "/admin_dashboard"; 
+        }
          function goToSignup() {
             console.log("Redirecting to signup page...");  // Log message for debugging
             window.location.href = "/signup";  // Redirect to the signup page
@@ -41,7 +45,7 @@
                 <br>
                 <h5 class="bluetext" id="forgotpassword">Forgot Password?</h5>
 
-                <button id="login" type="submit">Login Now</button>
+                <button id="login" type="button" onclick="goToAdmin()">Login Now</button>
 
                 <div class="or-divider">OR</div>
 
