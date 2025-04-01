@@ -12,6 +12,7 @@ import requests
 # Load environment variables from .env file
 load_dotenv()
 
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = 'C:\\Users\\Sharon\\Desktop\\School\\Spring 2025\\APP4080\\SmartTickets-main\\credentials.json'
 credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 if credentials_path:
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
@@ -99,7 +100,7 @@ def send_email(recipient, subject, body, qr_url):
         return False
 
 
-@app.route("/")
+@app.route("/index")
 def index():
     print("[INFO] Index route accessed.")
     return render_template('index.html')
@@ -146,6 +147,30 @@ def send_qr():
     except Exception as e:
         print(f"[ERROR] Unexpected error in /send_qr: {e}")
         return jsonify({"error": str(e)}), 500
+
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    return render_template('login.html')
+
+@app.route('/login', methods=['POST'])
+def login():
+    return render_template('login.html')
+
+@app.route('/signup', methods=['GET','POST'])
+def signup():
+    return render_template('signup.html')
+
+@app.route('/admin_dashboard', methods=['GET','POST'])
+def admin_dashboard():
+    return render_template('admin_dashboard.html')
+
+@app.route('/admin_checkin', methods=['GET','POST'])
+def admin_checkin():
+    return render_template('admin_checkin.html')
+
+@app.route('/admin_feedback', methods=['GET','POST'])
+def admin_feedback():
+    return render_template('admin_feedback.html')
 
 
 if __name__ == "__main__":
