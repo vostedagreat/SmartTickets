@@ -14,6 +14,7 @@ from firebase_admin import credentials, firestore, auth
 # Load environment variables from .env file
 load_dotenv()
 
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = 'C:\\Users\\Sharon\\Desktop\\School\\Spring 2025\\APP4080\\SmartTickets-main\\credentials.json'
 credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 if credentials_path:
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
@@ -101,7 +102,7 @@ def send_email(recipient, subject, body, qr_url):
         return False
 
 
-@app.route("/")
+@app.route("/index")
 def index():
     print("[INFO] Index route accessed.")
     return render_template('index.html')
@@ -149,81 +150,30 @@ def send_qr():
         print(f"[ERROR] Unexpected error in /send_qr: {e}")
         return jsonify({"error": str(e)}), 500
 
-# Initialize Firebase
-cred = credentials.Certificate("serviceAccountKey.json")
-firebase_admin.initialize_app(cred)
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    return render_template('login.html')
 
-#Set up Firestore client
-db = firestore.client()
-print("[INFO] Firebase Initialized successfully.")
-
-#Test Firebase Connection
-@app.route("/test_firebase", methods=["GET"])
-def test_firebase():
-    try:
-        db.collection("test_collection").add({"message": "Hello, Firebase!"})
-        return "Test document added to Firestore successfully!", 200
-    except Exception as e:
-        return f"Error adding test document: {str(e)}", 500
-
-#Signup Route
-@app.route("/signup", methods=["POST"])
-def signup():
-    try:
-        # Retrieve user data from the request
-        data = request.get_json()
-        email = data["email"]
-        password = data["password"]
-        first_name = data["first_name"]
-        last_name = data["last_name"]
-
-        # Create the user in Firebase Authentication
-        user = auth.create_user(
-            email=email,
-            password=password,
-            display_name=f"{first_name} {last_name}"
-        )
-        print(f"[SUCCESS] User created with UID: {user.uid}")
-
-        # Store user data in Firestore
-        db.collection("users").document(user.uid).set({
-            "first_name": first_name,
-            "last_name": last_name,
-            "email": email,
-        })
-
-        return jsonify({"message": "Signup successful"}), 201
-    except Exception as e:
-        print(f"[ERROR] Signup failed: {e}")
-        return jsonify({"error": str(e)}), 400
-    
-#Login route
-@app.route("/login", methods=["POST"])
+@app.route('/login', methods=['POST'])
 def login():
-    try:
-        # Retrieve login data from the request
-        data = request.get_json()
-        email = data["email"]
-        password = data["password"]
+    return render_template('login.html')
 
-        # Authenticate the user
-        user = auth.get_user_by_email(email)
-        print(f"[INFO] User logged in with UID: {user.uid}")
+@app.route('/signup', methods=['GET','POST'])
+def signup():
+    return render_template('signup.html')
 
-        return jsonify({
-            "message": "Login successful",
-            "user": {
-                "uid": user.uid,
-                "email": user.email,
-                "name": user.display_name
-            }
-        }), 200
-    except firebase_admin.auth.UserNotFoundError:
-        print("[ERROR] User not found.")
-        return jsonify({"error": "User not found"}), 404
-    except Exception as e:
-        print(f"[ERROR] Login failed: {e}")
-        return jsonify({"error": str(e)}), 400
+@app.route('/admin_dashboard', methods=['GET','POST'])
+def admin_dashboard():
+    return render_template('admin_dashboard.html')
+
+@app.route('/admin_checkin', methods=['GET','POST'])
+def admin_checkin():
+    return render_template('admin_checkin.html')
+
+@app.route('/admin_feedback', methods=['GET','POST'])
+def admin_feedback():
+    return render_template('admin_feedback.html')
+
 
 if __name__ == "__main__":
     print("[INFO] Starting Flask application...")
