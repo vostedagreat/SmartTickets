@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USIU Events</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='profile.css') }}">
+    
+</head>
+<body>
+    <div class="header">
+        <img src="{{ url_for('static', filename='images/back.png') }}" id="back"> 
+        <h3>USIU Events</h3>
+    </div>
+
+    <div class="profile-card">
+        <img src="{{url_for('static', filename='images/user.png') }}" alt="Profile Image" class="profile-img">
+        
+                <h2>Full Name</h2>
+                <p>John Doe</p>
+
+                <h2>Email</h2>
+                <p>John Doe</p>
+
+                <h2>Phone Number</h2>
+                <p>0707651423</p>
+
+                <h2>Major</h2>
+                <p>Software Engineering</p>
+
+                <button class="edit-button">Edit Profile</button>
+        
+    </div>
+</body>
+</html>
+

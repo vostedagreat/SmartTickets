@@ -172,6 +172,17 @@ def admin_checkin():
 def admin_feedback():
     return render_template('admin_feedback.html')
 
+@app.route('/client_dashboard', methods=['GET','POST'])
+def client_dashboard():
+    return render_template('client_dashboard.html')
+
+@app.route('/profile', methods=['GET','POST'])
+def profile():
+    return render_template('profile.html')
+@app.route('/client_purchases', methods=['GET','POST'])
+def client_purchases():
+    return render_template('client_purchases.html')
+
 
 if __name__ == "__main__":
     print("[INFO] Starting Flask application...")
