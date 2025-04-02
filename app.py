@@ -8,11 +8,20 @@ from dotenv import load_dotenv
 import qrcode
 import io
 import requests
+import firebase_admin
+from firebase_admin import credentials, firestore, auth
+
+#Initialize Firebase
+cred = credentials.Certificate("serviceAccountKey.json")
+firebase_admin.initialize_app(cred)
+
+#Set up Firestore client
+db = firestore.client()
+print("[INFO] Firebase Initialized successfully.")
 
 # Load environment variables from .env file
 load_dotenv()
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = 'C:\\Users\\Sharon\\Desktop\\School\\Spring 2025\\APP4080\\SmartTickets-main\\credentials.json'
 credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 if credentials_path:
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
@@ -100,6 +109,61 @@ def send_email(recipient, subject, body, qr_url):
         return False
 
 
+@app.route("/signup", methods=["POST"])
+def signup():
+    try:
+        data = request.get_json()
+        email = data["email"]
+        password = data["password"]
+        first_name = data["first_name"]
+        last_name = data["last_name"]
+
+        # Create the user in Firebase Authentication
+        user = auth.create_user(
+            email=email,
+            password=password,
+            display_name=f"{first_name} {last_name}"
+        )
+        print(f"[SUCCESS] User created with UID: {user.uid}")
+
+        # Store user data in Firestore
+        db.collection("users").document(user.uid).set({
+            "first_name": first_name,
+            "last_name": last_name,
+            "email": email,
+        })
+
+        return jsonify({"message": "Signup successful"}), 201
+    except Exception as e:
+        print(f"[ERROR] Signup failed: {e}")
+        return jsonify({"error": str(e)}), 400
+
+@app.route("/login", methods=["POST"])
+def login():
+    try:
+        data = request.get_json()
+        email = data["email"]
+        password = data["password"]
+
+        # Authenticate the user
+        user = auth.get_user_by_email(email)
+        print(f"[INFO] User logged in with UID: {user.uid}")
+
+        return jsonify({
+            "message": "Login successful",
+            "user": {
+                "uid": user.uid,
+                "email": user.email,
+                "name": user.display_name
+            }
+        }), 200
+    except firebase_admin.auth.UserNotFoundError:
+        print("[ERROR] User not found.")
+        return jsonify({"error": "User not found"}), 404
+    except Exception as e:
+        print(f"[ERROR] Login failed: {e}")
+        return jsonify({"error": str(e)}), 400
+
 @app.route("/index")
 def index():
     print("[INFO] Index route accessed.")
@@ -151,14 +215,6 @@ def send_qr():
 @app.route('/', methods=['GET', 'POST'])
 def home():
     return render_template('login.html')
-
-@app.route('/login', methods=['POST'])
-def login():
-    return render_template('login.html')
-
-@app.route('/signup', methods=['GET','POST'])
-def signup():
-    return render_template('signup.html')
 
 @app.route('/admin_dashboard', methods=['GET','POST'])
 def admin_dashboard():
