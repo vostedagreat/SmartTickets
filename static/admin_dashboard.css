@@ -157,7 +157,6 @@ tr:hover {
     background-color: #2B3990;
 }
 #back{
-    
     margin-left: 10px;
     width: 40px;
     height: 40px;
@@ -201,5 +200,12 @@ input {
     font-size: 16px;
     cursor: pointer;
 
+}
+#event-image{
+    color:white;
+    background-color:#e0e0e0 ;
+    width: 100%;
+    height: 200px;
+    border-radius: 15px;
 }
 

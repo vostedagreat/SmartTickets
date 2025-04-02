@@ -85,6 +85,9 @@ input {
     border: 1px solid #ccc;
     border-radius: 5px;
 }
+#email{
+    margin-bottom: 20px;
+}
 
 .icon {
     position: absolute;

@@ -1,0 +1,105 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+.header {
+    align-content: center;
+    justify-content: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    width: 100%;
+    height: 200px;
+    background:#2B3990;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 34px;
+    font-weight: bold;
+}
+.header h3{
+    margin-right: 590px;
+}
+#back{
+    margin-right: 600px;
+    width: 40px;
+    height: 40px;
+}
+/* Container */
+.container {
+    margin-top:100px;
+    width: 80%;
+    
+}
+
+/* Section Titles */
+.section-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+/* Events List */
+.events-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Event Card */
+.event-card {
+    display: flex;
+    align-items: center;
+    background-color: #e0e0e0;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.event-card img {
+    width: 80px;
+    height: 80px;
+    border-radius: 5px;
+    margin-right: 15px;
+}
+
+.event-info {
+    flex-grow: 1;
+}
+
+.event-info h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.event-info p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+/* Event Links */
+.event-links {
+    text-align: right;
+}
+
+.event-links a {
+    text-decoration: none;
+    font-size: 14px;
+    margin-right: 10px;
+}
+
+.event-links .code {
+    color: #1c1c60;
+    font-weight: bold;
+}
+#event-title{
+    color:#2B3990;
+}
