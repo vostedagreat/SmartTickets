@@ -1,0 +1,23 @@
+{
+  "name": "smarttickets",
+  "version": "1.0.0",
+  "description": "SmartTickets is a ticketing system that generates QR codes for event tickets and sends them to users via email. The project is built with **Flask (backend)**, **Google Cloud Platform (GCP)** for deployment, and a **frontend interface** for user interactions.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vostedagreat/SmartTickets.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vostedagreat/SmartTickets/issues"
+  },
+  "homepage": "https://github.com/vostedagreat/SmartTickets#readme",
+  "dependencies": {
+    "firebase": "^11.6.0"
+  }
+}
