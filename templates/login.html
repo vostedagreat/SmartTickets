@@ -33,26 +33,27 @@
             <h2 class="yellowtext" id="events">Events</h2>
 
             <h5>Login into your account</h5>
-            <form>
+            <form id="loginForm">
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" placeholder="Email">
-
+                <input type="email" id="email" name="email" placeholder="Email" required>
+            
                 <br>
-
+            
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Password">
-
+                <input type="password" id="password" name="password" placeholder="Password" required>
+            
                 <br>
                 <h5 class="bluetext" id="forgotpassword">Forgot Password?</h5>
-
-                <button id="login" type="button" onclick="goToAdmin()">Login Now</button>
-
+            
+                <!-- Trigger Firebase authentication logic -->
+                <button id="login" type="submit">Login Now</button>
+            
                 <div class="or-divider">OR</div>
-
+            
                 <button id="signup" type="button" onclick="goToSignup()">Sign Up Now</button>
             </form>
         </div>
 
     </div>
-
+    <script type="module" src="{{ url_for('static', filename='js/login.js') }}"></script>
 </body>
