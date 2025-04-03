@@ -1,6 +1,11 @@
+console.log("[DEBUG] firebase-config.js loaded.");
 // firebase-config.js
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth"; // Import additional Firebase services if needed
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-auth.js";
+
+import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-auth.js";
+
+console.log("[DEBUG] signInWithEmailAndPassword function:", signInWithEmailAndPassword);
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -16,3 +21,5 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app); // Include Authentication services
 export { auth };
+
+console.log("[DEBUG] Auth object in firebase-config.js:", auth);

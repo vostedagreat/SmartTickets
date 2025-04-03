@@ -30,7 +30,7 @@ else:
     raise EnvironmentError(
         "[ERROR] GOOGLE_APPLICATION_CREDENTIALS is not set.")
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static", template_folder="templates")
 
 BUCKET_NAME = "qr-code-store"
 print(f"[INFO] Using Cloud Storage Bucket: {BUCKET_NAME}")
@@ -109,59 +109,115 @@ def send_email(recipient, subject, body, qr_url):
         return False
 
 
-@app.route("/signup", methods=["POST"])
+@app.route("/signup", methods=["GET", "POST"])
 def signup():
-    try:
-        data = request.get_json()
-        email = data["email"]
-        password = data["password"]
-        first_name = data["first_name"]
-        last_name = data["last_name"]
+    if request.method == "POST":
+        try:
+            print("[DEBUG] Received POST request on /signup.")
+            # Check request type and parse data
+            if request.is_json:
+                print("[DEBUG] Request contains JSON.")
+                data = request.get_json()
+            else:
+                print("[DEBUG] Request contains form data.")
+                data = request.form.to_dict()
 
-        # Create the user in Firebase Authentication
-        user = auth.create_user(
-            email=email,
-            password=password,
-            display_name=f"{first_name} {last_name}"
-        )
-        print(f"[SUCCESS] User created with UID: {user.uid}")
+            # Log received data
+            print("[DEBUG] Received data:", data)
 
-        # Store user data in Firestore
-        db.collection("users").document(user.uid).set({
-            "first_name": first_name,
-            "last_name": last_name,
-            "email": email,
-        })
+            # Extract fields from the data
+            email = data.get("email")
+            first_name = data.get("first_name")
+            last_name = data.get("last_name")
+            degree = data.get("degree")
+            role = data.get("role")
+            phone = data.get("phone")
+            password = data.get("password")
 
-        return jsonify({"message": "Signup successful"}), 201
-    except Exception as e:
-        print(f"[ERROR] Signup failed: {e}")
-        return jsonify({"error": str(e)}), 400
+            # Basic validation
+            if not email or not password:
+                print("[ERROR] Missing required fields.")
+                return jsonify({"error": "Missing required fields"}), 400
 
-@app.route("/login", methods=["POST"])
+            # Create user in Firebase Authentication
+            print("[DEBUG] Creating user in Firebase Authentication...")
+            user = auth.create_user(
+                email=email,
+                password=password,
+                display_name=f"{first_name} {last_name}"
+            )
+            print(f"[SUCCESS] User created with UID: {user.uid}")
+
+            # Store user data in Firestore
+            print("[DEBUG] Storing user data in Firestore...")
+            db.collection("users").document(user.uid).set({
+                "first_name": first_name,
+                "last_name": last_name,
+                "email": email,
+                "degree": degree,
+                "role": role,
+                "phone": phone,
+            })
+            print("[SUCCESS] User data stored in Firestore.")
+
+            return jsonify({"message": "Signup successful"}), 201
+        except Exception as e:
+            print(f"[ERROR] Signup failed: {e}")
+            return jsonify({"error": str(e)}), 400
+    elif request.method == "GET":
+        print("[DEBUG] GET request received on /signup. Rendering signup.html.")
+        return render_template("signup.html")
+
+@app.route("/login", methods=["GET", "POST"])
 def login():
     try:
-        data = request.get_json()
-        email = data["email"]
-        password = data["password"]
+        if request.method == "GET":
+            # Render the login page for a GET request
+            print("[INFO] GET request received on /login. Rendering login.html.")
+            return render_template("login.html")
 
-        # Authenticate the user
-        user = auth.get_user_by_email(email)
-        print(f"[INFO] User logged in with UID: {user.uid}")
+        elif request.method == "POST":
+            # Extract email and password from the request
+            data = request.get_json()
+            email = data["email"]
+            password = data["password"]
 
-        return jsonify({
-            "message": "Login successful",
-            "user": {
-                "uid": user.uid,
-                "email": user.email,
-                "name": user.display_name
-            }
-        }), 200
-    except firebase_admin.auth.UserNotFoundError:
-        print("[ERROR] User not found.")
-        return jsonify({"error": "User not found"}), 404
+            # Authenticate the user in Firebase Authentication
+            user = auth.get_user_by_email(email)
+            print(f"[INFO] User authenticated with UID: {user.uid}")
+
+            # Fetch the user role from Firestore
+            user_doc = db.collection("users").document(user.uid).get()
+            if user_doc.exists:
+                user_role = user_doc.to_dict().get("role")
+                if user_role == "student":
+                    return jsonify({"message": "Login successful", "redirect": "/client_dashboard"}), 200
+                elif user_role == "staff":
+                    return jsonify({"message": "Login successful", "redirect": "/admin_dashboard"}), 200
+                else:
+                    return jsonify({"error": "Role not recognized"}), 400
+            else:
+                return jsonify({"error": "User not found in Firestore"}), 404
     except Exception as e:
         print(f"[ERROR] Login failed: {e}")
+        return jsonify({"error": str(e)}), 400
+
+@app.route("/get_user_role", methods=["POST"])
+def get_user_role():
+    try:
+        # Extract UID from the request
+        data = request.get_json()
+        uid = data["uid"]
+
+        # Query Firestore to fetch user role
+        user_doc = db.collection("users").document(uid).get()
+        if user_doc.exists:
+            user_data = user_doc.to_dict()
+            return jsonify({"role": user_data.get("role")}), 200
+        else:
+            return jsonify({"error": "User not found"}), 404
+    except Exception as e:
+        print(f"[ERROR] Failed to retrieve user role: {e}")
         return jsonify({"error": str(e)}), 400
 
 @app.route("/index")

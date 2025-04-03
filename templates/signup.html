@@ -4,105 +4,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | USIU Smart Tickets</title>
+    <title>Signup | USIU Smart Tickets</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='signup.css') }}">
-
-    <script>
-         function goToLogin() {
-            window.location.href = "/login";  // Redirect to the signup page
-        }
-
-    </script>
 
 </head>
 
 <body>
     <div class="main-content">
-        
 
         <div class="signup-section">
             <h2 class="bluetext" id="usiu">USIU</h2>
             <h2 class="yellowtext" id="events">Events</h2>
 
             <h5>Sign up and create your account</h5>
-            <form>
+
+            <form id="signupForm">
                 <div class="form-section">
 
                     <label for="first_name">First Name:</label>
-                    <input type="text" id="first_name" name="first_name" placeholder="First Name">
+                    <input type="text" id="first_name" name="first_name" placeholder="First Name" required>
 
                     <br>
                     <label for="last_name">Last Name:</label>
-                    <input type="text" id="last_name" name="last_name" placeholder="Last Name">
+                    <input type="text" id="last_name" name="last_name" placeholder="Last Name" required>
 
                     <br>
 
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" placeholder="Email">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" placeholder="Email" required>
 
                 </div>
                 <div class="form-section" id="formsection2">
 
                     <label for="degree">Degree:</label>
-                    <select id="degree" >
+                    <select id="degree" name="degree" required>
                         <option value="Software Engineering">Software Engineering</option>
                         <option value="Criminal Justice">Criminal Justice</option>
-                        <option value="Applied Biochemistry">Applied Biochemistry"</option>
+                        <option value="Applied Biochemistry">Applied Biochemistry</option>
                         <option value="Journalism">Journalism</option>
                         <option value="APT">Applied Computer Technology</option>
-                        <option value="Hotel and Restraunt Management">Hotel and Restraunt Management"</option>
+                        <option value="Hotel and Restraunt Management">Hotel and Restraunt Management</option>
                         <option value="Psycology">Psycology</option>
                         <option value="IST">Information Systems Technology</option>
                         <option value="Pharamacy">Pharamacy</option>
                         <option value="Finance">Finance</option>
                         <option value="Accounting">Accounting</option>
-                        
-                        
                     </select>
                     <br>
 
-                    <label for="role"> Role</label>
-                    <select id="role" name="role">
+                    <label for="role">Role:</label>
+                    <select id="role" name="role" required>
                         <option value="student">Student</option>
                         <option value="staff">Event Planner</option>
                     </select>
 
                     <br>
                     <label for="phone">Mobile No:</label>
-                    <input type="text" id="phone" name="phone" placeholder="Phone Number">
+                    <input type="text" id="phone" name="phone" placeholder="Phone Number" required>
                 </div>
                 <div class="form-section">
 
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" placeholder="Password">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" placeholder="Password" required>
 
                     <br>
-                    <label for="confirm_password">Confirm Password</label>  
-                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm Password">
+                    <label for="confirm_password">Confirm Password:</label>
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm Password" required>
                 </div>
-
-                <div class="form-section">
-            
-                   
-
-                    
-                </div>
-
-                
 
                 <br>
-
-                
                 <button id="signup" type="submit">Sign Up</button>
-                
             </form>
         </div>
 
         <div class="image-area">
             <img id="signup-image" src="{{ url_for('static', filename='images/signup2.png') }}" alt="signup_image">
-
         </div>
-
     </div>
-    <script type="module" src="{{ url_for('static', filename='js/signup.js') }}"></script>
+
+    <script>
+        document.getElementById("signupForm").addEventListener("submit", function(event) {
+            console.log("[DEBUG] Submit button clicked.");
+            event.preventDefault();
+
+            const firstName = document.getElementById("first_name").value;
+            const lastName = document.getElementById("last_name").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const confirmPassword = document.getElementById("confirm_password").value;
+            const degree = document.getElementById("degree").value;
+            const role = document.getElementById("role").value;
+            const phone = document.getElementById("phone").value;
+
+            console.log("[DEBUG] Form data:", {
+                first_name: firstName,
+                last_name: lastName,
+                email: email,
+                password: password,
+                confirm_password: confirmPassword,
+                degree: degree,
+                role: role,
+                phone: phone
+            });
+
+            if (password !== confirmPassword) {
+                console.log("[ERROR] Passwords do not match.");
+                alert("Passwords do not match. Please try again.");
+                return;
+            }
+
+            console.log("[DEBUG] Sending POST request to backend...");
+            fetch("/signup", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    first_name: firstName,
+                    last_name: lastName,
+                    email: email,
+                    degree: degree,
+                    role: role,
+                    phone: phone,
+                    password: password
+                })
+            })
+            .then((response) => {
+                console.log("[DEBUG] Backend response received:", response);
+                if (response.ok) {
+                    console.log("[SUCCESS] Signup successful.");
+                    alert("Signup successful! You can now log in.");
+                    window.location.href = "/login";
+                } else {
+                    response.json().then((data) => {
+                        console.log("[ERROR] Backend returned error:", data);
+                        alert(`Signup failed: ${data.error}`);
+                    });
+                }
+            })
+            .catch((error) => {
+                console.error("[ERROR] Signup failed:", error);
+                alert("An unexpected error occurred. Please try again.");
+            });
+        });
+    </script>
 </body>
+
+</html>
