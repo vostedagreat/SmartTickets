@@ -10,3 +10,5 @@ a/
 new/
 
 serviceAccountKey.json
+node_modules/
+static/js/firebase-config.js
