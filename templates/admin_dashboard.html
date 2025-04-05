@@ -111,8 +111,31 @@
                 const price = document.getElementById("price").value;
                 const startTime = document.getElementById("start-time").value;
                 const endTime = document.getElementById("end-time").value;
+                const file = document.getElementById("event-image").files[0];
+
+                //Default placeholder image
+                let imageUrl = "/static/images/default.png";
 
                 try {
+                    //Upload image if a file is provided
+                    if (file) {
+                        const formData = new FormData();
+                        formData.append("eventImage", file);
+
+                        const response = await fetch("/upload_image", {
+                            method: "POST",
+                            body: formData,
+                        });
+
+                        const result = await response.json();
+                        if (response.ok) {
+                            imageUrl = result.imageUrl; //Get uploaded image URL
+                        } else {
+                            console.error("Failed to upload image:", result.error);
+                            alert("Image upload failed. Default image will be used.");
+                        }
+                    }
+
                     if (editEventId) {
                         //Update existing event
                         await updateDoc(doc(db, "events", editEventId), {
@@ -123,11 +146,12 @@
                             price: price,
                             startTime: startTime,
                             endTime: endTime,
+                            imageUrl: imageUrl, //Add the image URL here
                         });
                         console.log("Event updated successfully!");
                         alert("Event updated successfully!");
                     } else {
-                        //Create a new event
+                        //Create new event
                         const docRef = await addDoc(collection(db, "events"), {
                             eventName: eventName,
                             description: description,
@@ -136,20 +160,20 @@
                             price: price,
                             startTime: startTime,
                             endTime: endTime,
+                            imageUrl: imageUrl, //Add the image URL here
                         });
                         console.log("Event added successfully with ID:", docRef.id);
                         alert("Event created successfully!");
                     }
 
-                    eventModal.style.display = "none"; //Close modal
+                    eventModal.style.display = "none"; //Close the modal
                     await fetchEvents(); //Refresh the table
                 } catch (error) {
                     console.error("Error updating/creating event:", error);
                     alert("Failed to save event details.");
                 }
 
-                //Reset the edit tracking
-                editEventId = null;
+                editEventId = null; //Reset edit tracking
             });
 
             //Listeners for opening and closing modal
@@ -247,7 +271,7 @@
                     <input id="end-time" type="time" placeholder="End Time">
 
                     <label for="event-image">Event Image/Logo</label>
-                    <input id="event-image" type="file" accept="image/*" name="eventImage">
+                    <input id="event-image" type="file" accept="image/*">
 
                     <button id="create-event" type="submit">Create Event</button>
 
