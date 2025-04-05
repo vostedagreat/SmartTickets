@@ -5,7 +5,103 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>USIU Events</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='profile.css') }}">
+    <script type="module">
+        import { firebaseConfig } from "/static/js/firebase-config.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-auth.js";
     
+        //Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+    
+        document.addEventListener("DOMContentLoaded", function () {
+            const fullNameElement = document.querySelector(".profile-card h2:nth-of-type(1) + p");
+            const emailElement = document.querySelector(".profile-card h2:nth-of-type(2) + p");
+            const phoneElement = document.querySelector(".profile-card h2:nth-of-type(3) + p");
+            const majorElement = document.querySelector(".profile-card h2:nth-of-type(4) + p");
+    
+            const editProfileModal = document.getElementById("editProfileModal");
+            const editButton = document.querySelector(".edit-button");
+            const closeModal = document.getElementById("closeModal");
+            const editProfileForm = document.getElementById("editProfileForm");
+    
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    try {
+                        const docRef = doc(db, "users", user.uid);
+                        const userDoc = await getDoc(docRef);
+    
+                        if (userDoc.exists()) {
+                            const data = userDoc.data();
+                            //Display profile data
+                            fullNameElement.textContent = `${data.first_name} ${data.last_name}`;
+                            emailElement.textContent = data.email;
+                            phoneElement.textContent = data.phone;
+                            majorElement.textContent = data.degree;
+    
+                            //Pre-fill form in the modal
+                            document.getElementById("first_name").value = data.first_name || "";
+                            document.getElementById("last_name").value = data.last_name || "";
+                            document.getElementById("email").value = data.email || "";
+                            document.getElementById("phone").value = data.phone || "";
+                            document.getElementById("degree").value = data.degree || "";
+                        } else {
+                            console.error("User profile not found!");
+                        }
+                    } catch (error) {
+                        console.error("Error fetching user profile:", error);
+                    }
+                } else {
+                    console.log("No user is logged in.");
+                }
+            });
+    
+            //Open the modal
+            editButton.addEventListener("click", function () {
+                console.log("Edit Profile button clicked!"); //Debug log
+                editProfileModal.style.display = "flex";
+            });
+    
+            //Close the modal
+            closeModal.addEventListener("click", function () {
+                editProfileModal.style.display = "none";
+            });
+    
+            //Handle form submission for editing
+            editProfileForm.addEventListener("submit", async (event) => {
+                event.preventDefault(); //Prevent default form submission behavior
+    
+                const firstName = document.getElementById("first_name").value;
+                const lastName = document.getElementById("last_name").value;
+                const email = document.getElementById("email").value;
+                const phone = document.getElementById("phone").value;
+                const degree = document.getElementById("degree").value;
+    
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        try {
+                            const docRef = doc(db, "users", user.uid);
+                            await updateDoc(docRef, {
+                                first_name: firstName,
+                                last_name: lastName,
+                                email: email,
+                                phone: phone,
+                                degree: degree,
+                            });
+                            alert("Profile updated successfully!");
+                            editProfileModal.style.display = "none"; //Close the modal
+                            window.location.reload(); //Reload the page to show updated details
+                        } catch (error) {
+                            console.error("Error updating profile:", error);
+                            alert("Failed to update profile. Please try again.");
+                        }
+                    }
+                });
+            });
+        });
+    </script>
 </head>
 <body>
     <div class="header">
@@ -17,19 +113,62 @@
         <img src="{{url_for('static', filename='images/user.png') }}" alt="Profile Image" class="profile-img">
         
                 <h2>Full Name</h2>
-                <p>John Doe</p>
+                <p></p>
 
                 <h2>Email</h2>
-                <p>John Doe</p>
+                <p></p>
 
                 <h2>Phone Number</h2>
-                <p>0707651423</p>
+                <p></p>
 
                 <h2>Major</h2>
-                <p>Software Engineering</p>
+                <p></p>
 
                 <button class="edit-button">Edit Profile</button>
         
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Profile</h2>
+            <form id="editProfileForm">
+                <label for="first_name">First Name:</label>
+                <input type="text" id="first_name" name="first_name" placeholder="First Name" required>
+
+                <br>
+                <label for="last_name">Last Name:</label>
+                <input type="text" id="last_name" name="last_name" placeholder="Last Name" required>
+
+                <br>
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" placeholder="Email" required>
+
+                <br>
+                <label for="degree">Degree:</label>
+                <select id="degree" name="degree" required>
+                    <option value="Software Engineering">Software Engineering</option>
+                    <option value="Criminal Justice">Criminal Justice</option>
+                    <option value="Applied Biochemistry">Applied Biochemistry</option>
+                    <option value="Journalism">Journalism</option>
+                    <option value="APT">Applied Computer Technology</option>
+                    <option value="Hotel and Restraunt Management">Hotel and Restraunt Management</option>
+                    <option value="Psychology">Psychology</option>
+                    <option value="IST">Information Systems Technology</option>
+                    <option value="Pharmacy">Pharmacy</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Accounting">Accounting</option>
+                </select>
+
+                <br>
+                <label for="phone">Mobile No:</label>
+                <input type="text" id="phone" name="phone" placeholder="Phone Number" required>
+
+                <br>
+                <button type="submit" id="saveProfile">Save Changes</button>
+                <button type="button" id="closeModal">Cancel</button>
+            </form>
+        </div>
     </div>
 </body>
 </html>
