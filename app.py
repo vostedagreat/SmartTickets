@@ -22,6 +22,7 @@ print("[INFO] Firebase Initialized successfully.")
 # Load environment variables from .env file
 load_dotenv()
 
+
 credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 if credentials_path:
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
@@ -108,6 +109,26 @@ def send_email(recipient, subject, body, qr_url):
         print(f"[ERROR] Failed to send email: {e}")
         return False
 
+UPLOAD_FOLDER = 'static/images'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+@app.route("/upload_image", methods=["POST"])
+def upload_image():
+    if "eventImage" not in request.files:
+        return jsonify({"error": "No image file provided"}), 400
+
+    file = request.files["eventImage"]
+
+    if file.filename == "":
+        return jsonify({"error": "No selected file"}), 400
+
+    # Save the file to /static/images
+    try:
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        file.save(file_path)
+        return jsonify({"message": "Image uploaded successfully", "imageUrl": f"/static/images/{file.filename}"}), 200
+    except Exception as e:
+        return jsonify({"error": f"Failed to upload image: {str(e)}"}), 500
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -291,9 +312,14 @@ def client_dashboard():
 @app.route('/profile', methods=['GET','POST'])
 def profile():
     return render_template('profile.html')
+
 @app.route('/client_purchases', methods=['GET','POST'])
 def client_purchases():
     return render_template('client_purchases.html')
+
+@app.route('/event_details', methods=['GET','POST'])
+def event_details():
+    return render_template('event_details.html')
 
 
 if __name__ == "__main__":
