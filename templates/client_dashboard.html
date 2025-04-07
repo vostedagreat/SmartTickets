@@ -14,6 +14,30 @@
         //Initialize Firebase using imported config
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+
+        document.addEventListener("DOMContentLoaded", function () {
+                const profileImg = document.getElementById("profile-img");
+                const profileMenu = document.getElementById("profile-menu");
+
+                // Initially hide the profile menu
+                profileMenu.style.display = "none";
+
+                // Toggle menu visibility when profile image is clicked
+                profileImg.addEventListener("click", function () {
+                    if (profileMenu.style.display === "none" || profileMenu.style.display === "") {
+                        profileMenu.style.display = "block";
+                    } else {
+                        profileMenu.style.display = "none";
+                    }
+                });
+
+                // Optional: Hide menu if user clicks outside of it
+                document.addEventListener("click", function (event) {
+                    if (!profileImg.contains(event.target) && !profileMenu.contains(event.target)) {
+                        profileMenu.style.display = "none";
+                    }
+                });
+            });
     
         document.addEventListener("DOMContentLoaded", async function () {
             const headerContent = document.querySelector(".header-content");
