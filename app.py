@@ -22,6 +22,7 @@ print("[INFO] Firebase Initialized successfully.")
 # Load environment variables from .env file
 load_dotenv()
 
+
 credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 if credentials_path:
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
@@ -311,9 +312,14 @@ def client_dashboard():
 @app.route('/profile', methods=['GET','POST'])
 def profile():
     return render_template('profile.html')
+
 @app.route('/client_purchases', methods=['GET','POST'])
 def client_purchases():
     return render_template('client_purchases.html')
+
+@app.route('/event_details', methods=['GET','POST'])
+def event_details():
+    return render_template('event_details.html')
 
 
 if __name__ == "__main__":

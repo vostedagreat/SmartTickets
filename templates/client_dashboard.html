@@ -11,144 +11,125 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore.js";
     
-        //Initialize Firebase using imported config
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-
-        document.addEventListener("DOMContentLoaded", function () {
-                const profileImg = document.getElementById("profile-img");
-                const profileMenu = document.getElementById("profile-menu");
-
-                // Initially hide the profile menu
-                profileMenu.style.display = "none";
-
-                // Toggle menu visibility when profile image is clicked
-                profileImg.addEventListener("click", function () {
-                    if (profileMenu.style.display === "none" || profileMenu.style.display === "") {
-                        profileMenu.style.display = "block";
-                    } else {
-                        profileMenu.style.display = "none";
-                    }
-                });
-
-                // Optional: Hide menu if user clicks outside of it
-                document.addEventListener("click", function (event) {
-                    if (!profileImg.contains(event.target) && !profileMenu.contains(event.target)) {
-                        profileMenu.style.display = "none";
-                    }
-                });
-            });
     
         document.addEventListener("DOMContentLoaded", async function () {
-            const headerContent = document.querySelector(".header-content");
-            const eventsContainer = document.querySelector(".grid");
-            const searchLocation = document.querySelector(".search-location");
-            const searchDate = document.querySelector(".search-date");
+          const headerContent = document.querySelector(".header-content");
+          const eventsContainer = document.querySelector(".grid");
+          const searchLocation = document.querySelector(".search-location");
+          const searchDate = document.querySelector(".search-date");
     
-            //Fetch and display the featured event in the header
-            async function fetchFeaturedEvent() {
-                try {
-                    const querySnapshot = await getDocs(collection(db, "events"));
-                    const featuredEvent = querySnapshot.docs[0]?.data(); //Pick the first event
+          const profileImg = document.getElementById("profile-img");
+          const profileMenu = document.getElementById("profile-menu");
     
-                    if (featuredEvent) {
-                        headerContent.innerHTML = `
-                            <h1 class="text-6xl font-bold">${featuredEvent.eventName}</h1>
-                            <p class="mt-4 text-lg">${featuredEvent.description}</p>
-                            <button class="mt-4 bg-pink-500 px-6 py-2 text-white rounded-full">Get Ticket</button>
-                        `;
-                    } else {
-                        // Handle no event case
-                        headerContent.innerHTML = `
-                            <h1 class="text-6xl font-bold">No Events Found</h1>
-                            <p class="mt-4 text-lg">Please check back later!</p>
-                            <button class="mt-4 bg-pink-500 px-6 py-2 text-white rounded-full disabled">Unavailable</button>
-                        `;
-                    }
-                } catch (error) {
-                    console.error("Error fetching featured event:", error);
-                    headerContent.innerHTML = `
-                        <h1 class="text-6xl font-bold">Featured Event</h1>
-                        <p class="mt-4 text-lg">Details will be displayed soon.</p>
-                        <button class="mt-4 bg-pink-500 px-6 py-2 text-white rounded-full disabled">Unavailable</button>
-                    `;
-                }
+          profileMenu.style.display = "none";
+          profileImg.addEventListener("click", function () {
+            profileMenu.style.display = profileMenu.style.display === "none" ? "block" : "none";
+          });
+          document.addEventListener("click", function (event) {
+            if (!profileImg.contains(event.target) && !profileMenu.contains(event.target)) {
+              profileMenu.style.display = "none";
             }
+          });
     
-            //Fetch and display unique locations in the dropdown
-            async function fetchLocations() {
-                try {
-                    const querySnapshot = await getDocs(collection(db, "events"));
-                    const locationSet = new Set(); //Set to avoid duplicates
+          async function fetchFeaturedEvent() {
+            try {
+              const querySnapshot = await getDocs(collection(db, "events"));
+              const featuredEvent = querySnapshot.docs[0]?.data();
+              const featuredId = querySnapshot.docs[0]?.id;
     
-                    querySnapshot.forEach((doc) => {
-                        const data = doc.data();
-                        if (data.location) {
-                            locationSet.add(data.location); //Add location to the Set
-                        }
-                    });
-    
-                    //Clear and populate dropdown dynamically
-                    searchLocation.innerHTML = `<option value="">All Locations</option>`;
-                    locationSet.forEach((location) => {
-                        const option = document.createElement("option");
-                        option.value = location;
-                        option.textContent = location;
-                        searchLocation.appendChild(option);
-                    });
-                } catch (error) {
-                    console.error("Error fetching locations:", error);
-                    alert("Failed to load location options. Please try again.");
-                }
+              if (featuredEvent) {
+                headerContent.innerHTML = `
+                  <h1 class="text-6xl font-bold">${featuredEvent.eventName}</h1>
+                  <p class="mt-4 text-lg">${featuredEvent.description}</p>
+                  <a href="/event_details/${featuredId}" class="mt-4 inline-block bg-pink-500 px-6 py-2 text-white rounded-full">Get Ticket</a>
+                `;
+              } else {
+                headerContent.innerHTML = `
+                  <h1 class="text-6xl font-bold">No Events Found</h1>
+                  <p class="mt-4 text-lg">Please check back later!</p>
+                  <button class="mt-4 bg-pink-500 px-6 py-2 text-white rounded-full disabled">Unavailable</button>
+                `;
+              }
+            } catch (error) {
+              console.error("Error fetching featured event:", error);
             }
+          }
     
-            //Fetch and display filtered events
-            async function fetchFilteredEvents(location = "", date = "") {
-                try {
-                    const querySnapshot = await getDocs(collection(db, "events"));
-                    eventsContainer.innerHTML = ""; //Clear existing events
+          async function fetchLocations() {
+            try {
+              const querySnapshot = await getDocs(collection(db, "events"));
+              const locationSet = new Set();
     
-                    querySnapshot.forEach((doc) => {
-                        const data = doc.data();
+              querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                if (data.location) locationSet.add(data.location);
+              });
     
-                        //Apply filters
-                        if (
-                            (!location || data.location === location) && //Match exact location
-                            (!date || data.date === date) //Match exact date
-                        ) {
-                            const eventCard = document.createElement("div");
-                            eventCard.className = "bg-white p-4 shadow rounded-lg";
-    
-                            eventCard.innerHTML = `
-                                <img src="${data.imageUrl}" class="w-full rounded" alt="${data.eventName}">
-                                <h3 class="mt-3 font-bold">${data.eventName}</h3>
-                                <p class="text-sm mt-2">${data.description}</p>
-                                <p class="text-sm font-semibold mt-1">${data.date} ${data.startTime} - ${data.endTime}</p>
-                            `;
-    
-                            eventsContainer.appendChild(eventCard);
-                        }
-                    });
-                } catch (error) {
-                    console.error("Error fetching events:", error);
-                    alert("Failed to load events. Please try again later.");
-                }
+              searchLocation.innerHTML = `<option value="">All Locations</option>`;
+              locationSet.forEach((location) => {
+                const option = document.createElement("option");
+                option.value = location;
+                option.textContent = location;
+                searchLocation.appendChild(option);
+              });
+            } catch (error) {
+              console.error("Error fetching locations:", error);
             }
+          }
     
-            //Event listeners for search filters
-            searchLocation.addEventListener("change", function () {
-                fetchFilteredEvents(searchLocation.value, searchDate.value);
-            });
-            searchDate.addEventListener("change", function () {
-                fetchFilteredEvents(searchLocation.value, searchDate.value);
-            });
+          async function fetchFilteredEvents(location = "", date = "") {
+            try {
+              const querySnapshot = await getDocs(collection(db, "events"));
+              eventsContainer.innerHTML = "";
     
-            //Fetch featured event, locations, and events on page load
-            await fetchFeaturedEvent();
-            await fetchLocations();
-            await fetchFilteredEvents();
+              querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const eventId = doc.id;
+    
+                if (
+                  (!location || data.location === location) &&
+                  (!date || data.date === date)
+                ) {
+                  const eventCard = document.createElement("div");
+                  eventCard.className = "bg-white p-4 shadow rounded-lg cursor-pointer transition hover:shadow-lg";
+                  eventCard.setAttribute("data-id", eventId);
+    
+                  eventCard.innerHTML = `
+                    <img src="${data.imageUrl}" class="w-full h-48 object-cover rounded" alt="${data.eventName}">
+                    <h3 class="mt-3 font-bold">${data.eventName}</h3>
+                    <p class="text-sm mt-2">${data.description}</p>
+                    <p class="text-sm font-semibold mt-1">${data.date} ${data.startTime} - ${data.endTime}</p>
+                  `;
+    
+                  eventCard.addEventListener("click", () => {
+                      window.location.href = `/event_details?id=${doc.id}`; 
+                  });
+    
+                  eventsContainer.appendChild(eventCard);
+                }
+              });
+            } catch (error) {
+              console.error("Error fetching events:", error);
+            }
+          }
+    
+          searchLocation.addEventListener("change", () => {
+            fetchFilteredEvents(searchLocation.value, searchDate.value);
+          });
+    
+          searchDate.addEventListener("change", () => {
+            fetchFilteredEvents(searchLocation.value, searchDate.value);
+          });
+    
+          await fetchFeaturedEvent();
+          await fetchLocations();
+          await fetchFilteredEvents();
         });
-    </script>
+      </script>
+
+    
 </head>
 
 <body >
