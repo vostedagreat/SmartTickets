@@ -11,11 +11,11 @@ import requests
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
 
-#Initialize Firebase
+# Initialize Firebase
 cred = credentials.Certificate("serviceAccountKey.json")
 firebase_admin.initialize_app(cred)
 
-#Set up Firestore client
+# Set up Firestore client
 db = firestore.client()
 print("[INFO] Firebase Initialized successfully.")
 
@@ -109,8 +109,10 @@ def send_email(recipient, subject, body, qr_url):
         print(f"[ERROR] Failed to send email: {e}")
         return False
 
+
 UPLOAD_FOLDER = 'static/images'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 
 @app.route("/upload_image", methods=["POST"])
 def upload_image():
@@ -126,9 +128,11 @@ def upload_image():
     try:
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(file_path)
-        return jsonify({"message": "Image uploaded successfully", "imageUrl": f"/static/images/{file.filename}"}), 200
+        return jsonify({"message": "Image uploaded successfully",
+                        "imageUrl": f"/static/images/{file.filename}"}), 200
     except Exception as e:
         return jsonify({"error": f"Failed to upload image: {str(e)}"}), 500
+
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -186,15 +190,18 @@ def signup():
             print(f"[ERROR] Signup failed: {e}")
             return jsonify({"error": str(e)}), 400
     elif request.method == "GET":
-        print("[DEBUG] GET request received on /signup. Rendering signup.html.")
+        print(
+            "[DEBUG] GET request received on /signup. Rendering signup.html.")
         return render_template("signup.html")
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     try:
         if request.method == "GET":
             # Render the login page for a GET request
-            print("[INFO] GET request received on /login. Rendering login.html.")
+            print(
+                "[INFO] GET request received on /login. Rendering login.html.")
             return render_template("login.html")
 
         elif request.method == "POST":
@@ -212,9 +219,11 @@ def login():
             if user_doc.exists:
                 user_role = user_doc.to_dict().get("role")
                 if user_role == "student":
-                    return jsonify({"message": "Login successful", "redirect": "/client_dashboard"}), 200
+                    return jsonify({"message": "Login successful",
+                                    "redirect": "/client_dashboard"}), 200
                 elif user_role == "staff":
-                    return jsonify({"message": "Login successful", "redirect": "/admin_dashboard"}), 200
+                    return jsonify({"message": "Login successful",
+                                    "redirect": "/admin_dashboard"}), 200
                 else:
                     return jsonify({"error": "Role not recognized"}), 400
             else:
@@ -222,6 +231,7 @@ def login():
     except Exception as e:
         print(f"[ERROR] Login failed: {e}")
         return jsonify({"error": str(e)}), 400
+
 
 @app.route("/get_user_role", methods=["POST"])
 def get_user_role():
@@ -240,6 +250,7 @@ def get_user_role():
     except Exception as e:
         print(f"[ERROR] Failed to retrieve user role: {e}")
         return jsonify({"error": str(e)}), 400
+
 
 @app.route("/index")
 def index():
@@ -289,35 +300,43 @@ def send_qr():
         print(f"[ERROR] Unexpected error in /send_qr: {e}")
         return jsonify({"error": str(e)}), 500
 
+
 @app.route('/', methods=['GET', 'POST'])
 def home():
     return render_template('login.html')
 
-@app.route('/admin_dashboard', methods=['GET','POST'])
+
+@app.route('/admin_dashboard', methods=['GET', 'POST'])
 def admin_dashboard():
     return render_template('admin_dashboard.html')
 
-@app.route('/admin_checkin', methods=['GET','POST'])
+
+@app.route('/admin_checkin', methods=['GET', 'POST'])
 def admin_checkin():
     return render_template('admin_checkin.html')
 
-@app.route('/admin_feedback', methods=['GET','POST'])
+
+@app.route('/admin_feedback', methods=['GET', 'POST'])
 def admin_feedback():
     return render_template('admin_feedback.html')
 
-@app.route('/client_dashboard', methods=['GET','POST'])
+
+@app.route('/client_dashboard', methods=['GET', 'POST'])
 def client_dashboard():
     return render_template('client_dashboard.html')
 
-@app.route('/profile', methods=['GET','POST'])
+
+@app.route('/profile', methods=['GET', 'POST'])
 def profile():
     return render_template('profile.html')
 
-@app.route('/client_purchases', methods=['GET','POST'])
+
+@app.route('/client_purchases', methods=['GET', 'POST'])
 def client_purchases():
     return render_template('client_purchases.html')
 
-@app.route('/event_details', methods=['GET','POST'])
+
+@app.route('/event_details', methods=['GET', 'POST'])
 def event_details():
     return render_template('event_details.html')
 
