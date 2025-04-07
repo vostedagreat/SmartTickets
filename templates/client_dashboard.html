@@ -43,8 +43,10 @@
                 headerContent.innerHTML = `
                   <h1 class="text-6xl font-bold">${featuredEvent.eventName}</h1>
                   <p class="mt-4 text-lg">${featuredEvent.description}</p>
-                  <a href="/event_details/${featuredId}" class="mt-4 inline-block bg-pink-500 px-6 py-2 text-white rounded-full">Get Ticket</a>
-                `;
+                  <a href="javascript:void(0);" id="buy-ticket-btn" class="mt-4 inline-block bg-pink-500 px-6 py-2 text-white rounded-full">Get Ticket</a>                `;
+                document.getElementById("buy-ticket-btn").addEventListener("click", () => {
+                  showPhoneNumberPrompt(featuredId);
+                });
               } else {
                 headerContent.innerHTML = `
                   <h1 class="text-6xl font-bold">No Events Found</h1>
@@ -54,6 +56,31 @@
               }
             } catch (error) {
               console.error("Error fetching featured event:", error);
+            }
+          }
+
+          function showPhoneNumberPrompt(featuredId) {
+            const phone = prompt("Enter your phone number to purchase the ticket:");
+            if (phone) {
+              fetch("/initiate_payment", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ phone, event_id: featuredId })
+              })
+              .then(response => response.json())
+              .then(data => {
+                if (data.success) {
+                  alert("Payment prompt sent to your phone. Complete the payment to receive your ticket.");
+                } else {
+                  alert("Error: " + data.message);
+                }
+              })
+              .catch(error => {
+                console.error("Error initiating payment:", error);
+                alert("There was an error initiating the payment. Please try again.");
+              });
             }
           }
     
