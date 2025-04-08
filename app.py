@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, redirect, make_response
 from google.cloud import storage
 import smtplib
 import os
@@ -7,9 +7,11 @@ from email.message import EmailMessage
 from dotenv import load_dotenv
 import qrcode
 import io
+from datetime import timedelta
 import requests
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
+from functools import wraps
 import uuid  # To generate unique ticket IDs
 from datetime import datetime
 import base64
@@ -20,6 +22,7 @@ firebase_admin.initialize_app(cred)
 
 # Set up Firestore client
 db = firestore.client()
+
 print("[INFO] Firebase Initialized successfully.")
 
 # Load environment variables from .env file
@@ -46,6 +49,40 @@ if GMAIL_USER and GMAIL_PASS:
 else:
     print("[WARNING] Gmail credentials are missing or incorrect.")
 
+def check_auth_session():
+    """Centralized session verification"""
+    session_cookie = request.cookies.get('firebase_session')
+    if not session_cookie:
+        return None
+    
+    try:
+        decoded_token = auth.verify_session_cookie(session_cookie, check_revoked=True)
+        user_doc = db.collection("users").document(decoded_token['uid']).get()
+        return user_doc.to_dict() if user_doc.exists else None
+    except (auth.InvalidSessionCookieError, auth.RevokedSessionCookieError):
+        return None
+
+def auth_required(f):
+    """Decorator for protected routes"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user_data = check_auth_session()
+        if not user_data:
+            return redirect('/login')
+        return f(*args, **kwargs)
+    return decorated_function
+
+def role_required(role):
+    """Decorator for role-based access"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            user_data = check_auth_session()
+            if not user_data or user_data.get('role') != role:
+                return redirect('/login')
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
 
 def generate_qr_code(data, filename="qrcode.png"):
     """Generates a QR Code and uploads it to Cloud Storage."""
@@ -135,6 +172,65 @@ def upload_image():
     except Exception as e:
         return jsonify({"error": f"Failed to upload image: {str(e)}"}), 500
 
+# Session Management
+@app.route('/session_login', methods=['POST'])
+def session_login():
+    try:
+        id_token = request.json.get('idToken')
+        expires_in = timedelta(hours=1)  # Shorter session duration
+        
+        session_cookie = auth.create_session_cookie(
+            id_token,
+            expires_in=expires_in
+        )
+        
+        response = make_response(jsonify({"status": "success"}))
+        response.set_cookie(
+            'firebase_session',
+            session_cookie,
+            max_age=expires_in.total_seconds(),
+            httponly=True,
+            secure=os.environ.get("FLASK_ENV") == "production",
+            samesite='Lax'
+        )
+        return response
+    except Exception as e:
+        app.logger.error(f"Session login failed: {str(e)}")
+        return jsonify({"error": "Authentication failed"}), 401
+
+# Logout
+@app.route('/logout')
+def logout():
+    response = make_response(redirect('/login'))
+    response.set_cookie('firebase_session', '', expires=0)
+    return response
+
+# Role-based Authentication
+@app.route('/get_user_role', methods=['POST'])
+def get_user_role():
+    try:
+        uid = request.json.get('uid')
+        user_doc = db.collection("users").document(uid).get()
+        if not user_doc.exists:
+            return jsonify({"error": "User not found"}), 404
+        return jsonify({"role": user_doc.to_dict().get("role")}), 200
+    except Exception as e:
+        app.logger.error(f"Role fetch failed: {str(e)}")
+        return jsonify({"error": str(e)}), 400
+
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    user_data = check_auth_session()
+    if user_data:
+        return redirect("/admin_dashboard" if user_data['role'] == "staff" else "/client_dashboard")     
+    return render_template('login.html')
+
+@app.route('/login', methods=['GET'])
+def login():
+    user_data = check_auth_session()
+    if user_data:
+        return redirect("/admin_dashboard" if user_data['role'] == "staff" else "/client_dashboard")     
+    return render_template('login.html')
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -192,66 +288,47 @@ def signup():
             print(f"[ERROR] Signup failed: {e}")
             return jsonify({"error": str(e)}), 400
     elif request.method == "GET":
-        print(
-            "[DEBUG] GET request received on /signup. Rendering signup.html.")
+        print("[DEBUG] GET request received on /signup. Rendering signup.html.")
+        user_data = check_auth_session()
+        if user_data:
+            return redirect("/admin_dashboard" if user_data['role'] == "staff" else "/client_dashboard")     
         return render_template("signup.html")
 
+# Protected Route
+@app.route('/admin_dashboard', methods=['GET','POST'])
+@role_required('staff')
+def admin_dashboard():
+    return render_template('admin_dashboard.html')
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    try:
-        if request.method == "GET":
-            # Render the login page for a GET request
-            print(
-                "[INFO] GET request received on /login. Rendering login.html.")
-            return render_template("login.html")
+@app.route('/admin_checkin', methods=['GET','POST'])
+@role_required('staff')
+def admin_checkin():
+    return render_template('admin_checkin.html')
 
-        elif request.method == "POST":
-            # Extract email and password from the request
-            data = request.get_json()
-            email = data["email"]
-            password = data["password"]
+@app.route('/admin_feedback', methods=['GET','POST'])
+@role_required('staff')
+def admin_feedback():
+    return render_template('admin_feedback.html')
 
-            # Authenticate the user in Firebase Authentication
-            user = auth.get_user_by_email(email)
-            print(f"[INFO] User authenticated with UID: {user.uid}")
+@app.route('/client_dashboard', methods=['GET','POST'])
+@role_required('student')
+def client_dashboard():
+    return render_template('client_dashboard.html')
 
-            # Fetch the user role from Firestore
-            user_doc = db.collection("users").document(user.uid).get()
-            if user_doc.exists:
-                user_role = user_doc.to_dict().get("role")
-                if user_role == "student":
-                    return jsonify({"message": "Login successful",
-                                    "redirect": "/client_dashboard"}), 200
-                elif user_role == "staff":
-                    return jsonify({"message": "Login successful",
-                                    "redirect": "/admin_dashboard"}), 200
-                else:
-                    return jsonify({"error": "Role not recognized"}), 400
-            else:
-                return jsonify({"error": "User not found in Firestore"}), 404
-    except Exception as e:
-        print(f"[ERROR] Login failed: {e}")
-        return jsonify({"error": str(e)}), 400
+@app.route('/profile', methods=['GET','POST'])
+@role_required('student')
+def profile():
+    return render_template('profile.html')
 
+@app.route('/client_purchases', methods=['GET','POST'])
+@role_required('student')
+def client_purchases():
+    return render_template('client_purchases.html')
 
-@app.route("/get_user_role", methods=["POST"])
-def get_user_role():
-    try:
-        # Extract UID from the request
-        data = request.get_json()
-        uid = data["uid"]
-
-        # Query Firestore to fetch user role
-        user_doc = db.collection("users").document(uid).get()
-        if user_doc.exists:
-            user_data = user_doc.to_dict()
-            return jsonify({"role": user_data.get("role")}), 200
-        else:
-            return jsonify({"error": "User not found"}), 404
-    except Exception as e:
-        print(f"[ERROR] Failed to retrieve user role: {e}")
-        return jsonify({"error": str(e)}), 400
+@app.route('/event_details', methods=['GET','POST'])
+@role_required('student')
+def event_details():
+    return render_template('event_details.html')
 
 
 @app.route("/index")
@@ -352,47 +429,6 @@ def get_ticket(ticket_id):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-@app.route('/', methods=['GET', 'POST'])
-def home():
-    return render_template('login.html')
-
-
-@app.route('/admin_dashboard', methods=['GET', 'POST'])
-def admin_dashboard():
-    return render_template('admin_dashboard.html')
-
-
-@app.route('/admin_checkin', methods=['GET', 'POST'])
-def admin_checkin():
-    return render_template('admin_checkin.html')
-
-
-@app.route('/admin_feedback', methods=['GET', 'POST'])
-def admin_feedback():
-    return render_template('admin_feedback.html')
-
-
-@app.route('/client_dashboard', methods=['GET', 'POST'])
-def client_dashboard():
-    return render_template('client_dashboard.html')
-
-
-@app.route('/profile', methods=['GET', 'POST'])
-def profile():
-    return render_template('profile.html')
-
-
-@app.route('/client_purchases', methods=['GET', 'POST'])
-def client_purchases():
-    return render_template('client_purchases.html')
-
-
-@app.route('/event_details', methods=['GET', 'POST'])
-def event_details():
-    return render_template('event_details.html')
-
 
 @app.route('/ticketing', methods=['GET'])
 def ticketing():
@@ -549,6 +585,10 @@ def initiate_payment():
 
     return jsonify(response.json())
 
+@app.errorhandler(404)
+def page_not_found(e):
+    # Redirect all undefined routes to home page
+    return redirect('/')
 
 if __name__ == "__main__":
     print("[INFO] Starting Flask application...")
