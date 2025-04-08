@@ -15,15 +15,22 @@
         <h3>USIU Events</h3>
     </div>
 
-    <div class="max-w-3xl mx-auto my-10 bg-white p-6 rounded shadow">
+    
+    <div class="event-container">
         <div id="event-info">
-            <!-- Details will be filled by JS -->
+            <!-- Event details will be filled dynamically by JS -->
         </div>
 
-        <button class="mt-6 bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
-            Pay for Event
-        </button>
+        <div class="event-price-container">
+            <div>
+                <h4 class="price-label">Price:</h4>
+                <p id="event-price" class="price-text">Loading...</p>
+            </div>
+            <button id="payButton" class="pay-button" onclick="payForEvent()">Pay for Event</button>
+        </div>
     </div>
+
+       
 
     <script type="module" src="{{ url_for('static', filename='js/event_details.js')}}"></script>
 </body>
