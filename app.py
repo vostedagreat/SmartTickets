@@ -527,14 +527,10 @@ def ticketing():
 
 @app.route('/initiate_payment', methods=['GET','POST'])
 def initiate_payment():
-    if request.is_json:
-        data = request.get_json()  # Parse the incoming JSON request
-        phone = data.get('phone')
-        amount = data.get('amount')
-        event_id = data.get('eventId')
-        # Your payment logic here
-    else:
-        return "Invalid content type, expected application/json", 400
+    data = request.get_json()
+    print("Got data:", data)
+    phone = data.get('phone')
+    event_id = data.get('event_id')
 
     if not phone or not event_id:
         return jsonify({"success": False, "message": "Missing phone number or event ID"}), 400
@@ -592,6 +588,61 @@ def page_not_found(e):
     # Redirect all undefined routes to home page
     return redirect('/')
 
+@app.route('/payment_callback', methods=['POST'])
+def payment_callback():
+    data = request.get_json()
+    print("Payment callback data:", data)
+
+    # Check the payment status
+    if data.get("Body", {}).get("stkCallback", {}).get("ResultCode") == 0:
+        # Successful payment
+        print("Payment successful!")
+        # You can update your database here with payment details
+
+        return jsonify({"success": True, "message": "Payment successful"})
+    else:
+        # Payment failed
+        print("Payment failed!")
+        return jsonify({"success": False, "message": "Payment failed"})
+
+
+# Endpoint to generate a ticket for an event
+@app.route('/buy_ticket/<event_id>', methods=['POST'])
+def buy_ticket(event_id):
+    try:
+        # Fetch the user ID (you can get this from the session or request)
+        user_id = request.json.get("user_id")  # This will come from frontend
+
+        if not user_id:
+            return jsonify({"error": "User ID is required"}), 400
+
+        # Create a unique ticket ID
+        ticket_id = str(uuid.uuid4())
+
+        # Create a ticket document
+        ticket_data = {
+            "user_id": user_id,
+            "event_id": event_id,
+            "ticket_id": ticket_id,
+            "purchase_date": datetime.utcnow(),
+            "status": "purchased",  # Can be 'purchased', 'scanned', etc.
+            "ticket_url": f"/ticket/{ticket_id}"  # URL to be encoded in QRcode
+        }
+
+        # Store the ticket in Firestore
+        ticket_ref = db.collection('tickets').document(ticket_id)
+        ticket_ref.set(ticket_data)
+
+        # Respond with the ticket URL for QR code generation
+        return jsonify({"ticket_url": ticket_data["ticket_url"]}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
     print("[INFO] Starting Flask application...")
+<<<<<<< HEAD
     app.run(host="0.0.0.0", port=8080, debug=False)
+=======
+    app.run(host="0.0.0.0", port=8080, debug=True)
+>>>>>>> 08dee25 (WIP: changes to app.py before merging main)
