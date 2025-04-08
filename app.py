@@ -24,6 +24,7 @@ print("[INFO] Firebase Initialized successfully.")
 
 # Load environment variables from .env file
 load_dotenv()
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = 'C:\\Users\\Sharon\\Desktop\\School\\Spring 2025\\APP4080\\SmartTickets-main\\credentials.json'
 
 
 credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
@@ -488,11 +489,16 @@ def ticketing():
     '''
 
 
-@app.route('/initiate_payment', methods=['POST'])
+@app.route('/initiate_payment', methods=['GET','POST'])
 def initiate_payment():
-    data = request.get_json()
-    phone = data.get('phone')
-    event_id = data.get('event_id')
+    if request.is_json:
+        data = request.get_json()  # Parse the incoming JSON request
+        phone = data.get('phone')
+        amount = data.get('amount')
+        event_id = data.get('eventId')
+        # Your payment logic here
+    else:
+        return "Invalid content type, expected application/json", 400
 
     if not phone or not event_id:
         return jsonify({"success": False, "message": "Missing phone number or event ID"}), 400
@@ -523,7 +529,7 @@ def initiate_payment():
         "Password": password,
         "Timestamp": timestamp,
         "TransactionType": "CustomerPayBillOnline",
-        "Amount": 100,  # Adjust this dynamically if needed
+        "Amount": amount,  # Adjust this dynamically if needed
         "PartyA": phone,
         "PartyB": shortcode,
         "PhoneNumber": phone,
