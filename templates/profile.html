@@ -1,36 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>USIU Events</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='profile.css') }}">
-    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
 </head>
+
 <body>
     <div class="header">
-        <img src="{{ url_for('static', filename='images/back.png') }}" id="back"> 
+        <img src="{{ url_for('static', filename='images/back.png') }}" id="back">
         <h3>USIU Events</h3>
     </div>
 
     <div class="profile-card">
         <img src="{{url_for('static', filename='images/user.png') }}" alt="Profile Image" class="profile-img">
-        
-                <h2>Full Name</h2>
-                <p>John Doe</p>
 
-                <h2>Email</h2>
-                <p>John Doe</p>
+        <h2>Full Name</h2>
+        <p></p>
 
-                <h2>Phone Number</h2>
-                <p>0707651423</p>
+        <h2>Email</h2>
+        <p></p>
 
-                <h2>Major</h2>
-                <p>Software Engineering</p>
+        <h2>Phone Number</h2>
+        <p></p>
 
-                <button class="edit-button">Edit Profile</button>
-        
+        <h2>Major</h2>
+        <p></p>
+
+        <button class="edit-button">Edit Profile</button>
+
     </div>
-</body>
-</html>
 
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Profile</h2>
+            <form id="editProfileForm">
+                <label for="first_name">First Name:</label>
+                <input type="text" id="first_name" name="first_name" placeholder="First Name" required>
+
+                <br>
+                <label for="last_name">Last Name:</label>
+                <input type="text" id="last_name" name="last_name" placeholder="Last Name" required>
+
+                <br>
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" placeholder="Email" required>
+
+                <br>
+                <label for="degree">Degree:</label>
+                <select id="degree" name="degree" required>
+                    <option value="Software Engineering">Software Engineering</option>
+                    <option value="Criminal Justice">Criminal Justice</option>
+                    <option value="Applied Biochemistry">Applied Biochemistry</option>
+                    <option value="Journalism">Journalism</option>
+                    <option value="APT">Applied Computer Technology</option>
+                    <option value="Hotel and Restraunt Management">Hotel and Restraunt Management</option>
+                    <option value="Psychology">Psychology</option>
+                    <option value="IST">Information Systems Technology</option>
+                    <option value="Pharmacy">Pharmacy</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Accounting">Accounting</option>
+                </select>
+
+                <br>
+                <label for="phone">Mobile No:</label>
+                <input type="text" id="phone" name="phone" placeholder="Phone Number" required>
+
+                <br>
+                <button type="submit" id="saveProfile">Save Changes</button>
+                <button type="button" id="closeModal">Cancel</button>
+            </form>
+        </div>
+    </div>
+    <script type="module" src="{{url_for('static', filename='js/profile.js') }}"></script>
+</body>
+
+</html>

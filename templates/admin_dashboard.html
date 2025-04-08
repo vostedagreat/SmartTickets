@@ -1,54 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='admin_dashboard.css') }}">
-    <script type="module">
-
-        document.addEventListener("DOMContentLoaded", function() {
-            const newEventButton = document.getElementById("new_event");
-            const eventModal = document.getElementById("eventmodal");
-            const closeModalButton = document.getElementById("back");
-
-            newEventButton.addEventListener("click", function() {
-                console.log("add event clicked")
-                eventModal.style.display = "block";
-            });
-
-            closeModalButton.addEventListener("click", function() {
-                eventModal.style.display = "none";
-            });
-
-            window.addEventListener("click", function(event) {
-                if (event.target === eventModal) {
-                    eventModal.style.display = "none";
-                }
-            });
-        });
-
-        
-    </script>
-
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/logout_button.css') }}">
 </head>
 
 <body>
-    
+    <div class="topbar">
+        <h4 class="logout-btn" id="logout" onclick="handleLogout()">Logout</h4>
+    </div>
+
     <div class="container">
         <!-- Sidebar -->
         <nav class="sidebar" id="sidebar">
 
             <ul>
-                <li><a href="/admin_dashboard" class="active"><img src="{{ url_for('static', filename='images/event.png') }}" class="icon-img"> <span class="text">Events</span></a></li>
-                <li><a href="/admin_qrcode"><img src="{{ url_for('static', filename='images/qr-code.png') }}" class="icon-img"> <span class="text">QR Code</span></a></li>
-                <li><a href="/admin_checkin"><img src="{{ url_for('static', filename='images/checkmark.png') }}" class="icon-img"> <span class="text">Event Check In</span></a></li>
-                <li><a href="/admin_feedback"><img src="{{ url_for('static', filename='images/star.png') }}" class="icon-img"> <span class="text">Event Feedback</span></a></li>
+                <li><a href="/admin_dashboard" class="active"><img
+                            src="{{ url_for('static', filename='images/event.png') }}" class="icon-img"> <span
+                            class="text">Events</span></a></li>
+                <li><a href="/admin_qrcode"><img src="{{ url_for('static', filename='images/qr-code.png') }}"
+                            class="icon-img"> <span class="text">QR Code</span></a></li>
+                <li><a href="/admin_checkin"><img src="{{ url_for('static', filename='images/checkmark.png') }}"
+                            class="icon-img"> <span class="text">Event Check In</span></a></li>
+                <li><a href="/admin_feedback"><img src="{{ url_for('static', filename='images/star.png') }}"
+                            class="icon-img"> <span class="text">Event Feedback</span></a></li>
             </ul>
 
             <button id="new_event" class="btn">+ New Event</button>
-            <h4 class="bluetext" id="logout">Logout</h4>
-
         </nav>
     </div>
 
@@ -69,27 +51,27 @@
                 </thead>
 
                 <tbody id="eventsTable"></tbody>
-                   
+
             </table>
         </div>
 
         <div class="modal" id="eventmodal">
             <div class="modal-content">
-        
-                <div class="modal-header"> 
-                    <img src="{{ url_for('static', filename='images/back.png') }}" id="back">        
+
+                <div class="modal-header">
+                    <img src="{{ url_for('static', filename='images/back.png') }}" id="back">
                     <h2>USIU Events</h2>
                 </div>
 
                 <form>
                     <h3>Create Event</h3>
-                    
+
                     <label for="event_name">Event Name</label>
                     <input id="event-name" type="text" placeholder="Event Name">
 
                     <label for="description">Event Description</label>
                     <input id="event-description" type="text" placeholder="About the Event">
-                    
+
                     <label for="location">Location</label>
                     <input id="loaction" type="text" placeholder="Location">
 
@@ -109,17 +91,12 @@
                     <input id="event-image" type="file" accept="image/*">
 
                     <button id="create-event" type="submit">Create Event</button>
-
                 </form>
-
             </div>
         </div>
-
-
     </div>
-
-    
-
-   
+    <script type="module" src="{{ url_for('static', filename='js/admin_dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/logout.js') }}"></script>
 </body>
+
 </html>
