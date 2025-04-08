@@ -10,6 +10,7 @@
         import { firebaseConfig } from "/static/js/firebase-config.js";
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore.js";
+        import { doc, addDoc } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore.js";
     
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -171,19 +172,51 @@
 
                     modal.querySelector("#save_feedback").addEventListener("click", (e) => {
                       e.stopPropagation();
+                      saveFeedback(eventId);
                     });
 
                     modal.querySelector("#back").addEventListener("click", (e) => {
                       e.stopPropagation();
                       modal.classList.add('hidden');
                     });
-                                    }, 0);
+                  }, 0);
 
                   eventsContainer.appendChild(eventCard);
                 }
               });
             } catch (error) {
               console.error("Error fetching events:", error);
+            }
+          }
+
+          async function saveFeedback(eventId) {
+            const feedbackInput = document.querySelector(`#feedback_modal textarea#feedback`);
+            const feedbackText = feedbackInput.value.trim();
+            const timestamp = new Date().toISOString(); //Create timestamp for the feedback
+
+            if (!feedbackText) {
+              alert("Feedback cannot be empty!");
+              return;
+            }
+
+            try {
+              //Reference to the feedback subcollection of the specific event
+              const eventRef = doc(db, "events", eventId);
+              const feedbackRef = collection(eventRef, "feedback");
+
+              //Save feedback to Firestore
+              await addDoc(feedbackRef, {
+                content: feedbackText,
+                date: timestamp,
+                userId: auth.currentUser ? auth.currentUser.uid : null, // Optional: store user ID
+              });
+
+              alert("Feedback submitted successfully!");
+              feedbackInput.value = ""; //Clear the feedback textarea
+              document.getElementById("feedback_modal").classList.add("hidden"); //Hide the modal
+            } catch (error) {
+              console.error("Error saving feedback:", error);
+              alert("Failed to submit feedback. Please try again.");
             }
           }
 
