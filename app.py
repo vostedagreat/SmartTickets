@@ -29,7 +29,6 @@ print("[INFO] Firebase Initialized successfully.")
 load_dotenv()
 
 
-
 credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 if credentials_path:
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
@@ -51,18 +50,21 @@ if GMAIL_USER and GMAIL_PASS:
 else:
     print("[WARNING] Gmail credentials are missing or incorrect.")
 
+
 def check_auth_session():
     """Centralized session verification"""
     session_cookie = request.cookies.get('firebase_session')
     if not session_cookie:
         return None
-    
+
     try:
-        decoded_token = auth.verify_session_cookie(session_cookie, check_revoked=True)
+        decoded_token = auth.verify_session_cookie(
+            session_cookie, check_revoked=True)
         user_doc = db.collection("users").document(decoded_token['uid']).get()
         return user_doc.to_dict() if user_doc.exists else None
     except (auth.InvalidSessionCookieError, auth.RevokedSessionCookieError):
         return None
+
 
 def auth_required(f):
     """Decorator for protected routes"""
@@ -73,6 +75,7 @@ def auth_required(f):
             return redirect('/login')
         return f(*args, **kwargs)
     return decorated_function
+
 
 def role_required(role):
     """Decorator for role-based access"""
@@ -85,6 +88,7 @@ def role_required(role):
             return f(*args, **kwargs)
         return decorated_function
     return decorator
+
 
 def generate_qr_code(data, filename="qrcode.png"):
     """Generates a QR Code and uploads it to Cloud Storage."""
@@ -174,18 +178,19 @@ def upload_image():
     except Exception as e:
         return jsonify({"error": f"Failed to upload image: {str(e)}"}), 500
 
+
 # Session Management
 @app.route('/session_login', methods=['POST'])
 def session_login():
     try:
         id_token = request.json.get('idToken')
         expires_in = timedelta(hours=1)  # Shorter session duration
-        
+
         session_cookie = auth.create_session_cookie(
             id_token,
             expires_in=expires_in
         )
-        
+
         response = make_response(jsonify({"status": "success"}))
         response.set_cookie(
             'firebase_session',
@@ -200,12 +205,14 @@ def session_login():
         app.logger.error(f"Session login failed: {str(e)}")
         return jsonify({"error": "Authentication failed"}), 401
 
+
 # Logout
 @app.route('/logout')
 def logout():
     response = make_response(redirect('/login'))
     response.set_cookie('firebase_session', '', expires=0)
     return response
+
 
 # Role-based Authentication
 @app.route('/get_user_role', methods=['POST'])
@@ -220,19 +227,26 @@ def get_user_role():
         app.logger.error(f"Role fetch failed: {str(e)}")
         return jsonify({"error": str(e)}), 400
 
+
 @app.route('/', methods=['GET', 'POST'])
 def home():
     user_data = check_auth_session()
     if user_data:
-        return redirect("/admin_dashboard" if user_data['role'] == "staff" else "/client_dashboard")     
+        return redirect(
+            "/admin_dashboard" if user_data['role'] == "staff"
+            else "/client_dashboard")
     return render_template('login.html')
+
 
 @app.route('/login', methods=['GET'])
 def login():
     user_data = check_auth_session()
     if user_data:
-        return redirect("/admin_dashboard" if user_data['role'] == "staff" else "/client_dashboard")     
+        return redirect(
+            "/admin_dashboard" if user_data['role'] == "staff"
+            else "/client_dashboard")
     return render_template('login.html')
+
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -290,44 +304,54 @@ def signup():
             print(f"[ERROR] Signup failed: {e}")
             return jsonify({"error": str(e)}), 400
     elif request.method == "GET":
-        print("[DEBUG] GET request received on /signup. Rendering signup.html.")
+        print(
+            "[DEBUG] GET request received on /signup. Rendering signup.html.")
         user_data = check_auth_session()
         if user_data:
-            return redirect("/admin_dashboard" if user_data['role'] == "staff" else "/client_dashboard")     
+            return redirect(
+                "/admin_dashboard" if user_data['role'] == "staff"
+                else "/client_dashboard")
         return render_template("signup.html")
 
+
 # Protected Route
-@app.route('/admin_dashboard', methods=['GET','POST'])
+@app.route('/admin_dashboard', methods=['GET', 'POST'])
 @role_required('staff')
 def admin_dashboard():
     return render_template('admin_dashboard.html')
 
-@app.route('/admin_checkin', methods=['GET','POST'])
+
+@app.route('/admin_checkin', methods=['GET', 'POST'])
 @role_required('staff')
 def admin_checkin():
     return render_template('admin_checkin.html')
 
-@app.route('/admin_feedback', methods=['GET','POST'])
+
+@app.route('/admin_feedback', methods=['GET', 'POST'])
 @role_required('staff')
 def admin_feedback():
     return render_template('admin_feedback.html')
 
-@app.route('/client_dashboard', methods=['GET','POST'])
+
+@app.route('/client_dashboard', methods=['GET', 'POST'])
 @role_required('student')
 def client_dashboard():
     return render_template('client_dashboard.html')
 
-@app.route('/profile', methods=['GET','POST'])
+
+@app.route('/profile', methods=['GET', 'POST'])
 @role_required('student')
 def profile():
     return render_template('profile.html')
 
-@app.route('/client_purchases', methods=['GET','POST'])
+
+@app.route('/client_purchases', methods=['GET', 'POST'])
 @role_required('student')
 def client_purchases():
     return render_template('client_purchases.html')
 
-@app.route('/event_details', methods=['GET','POST'])
+
+@app.route('/event_details', methods=['GET', 'POST'])
 @role_required('student')
 def event_details():
     return render_template('event_details.html')
@@ -432,6 +456,7 @@ def get_ticket(ticket_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @app.route('/ticketing', methods=['GET'])
 def ticketing():
     return '''
@@ -525,124 +550,12 @@ def ticketing():
     '''
 
 
-@app.route('/initiate_payment', methods=['GET','POST'])
-def initiate_payment():
-    data = request.get_json()
-    print("Got data:", data)
-    phone = data.get('phone')
-    event_id = data.get('event_id')
-
-    if not phone or not event_id:
-        return jsonify({"success": False, "message": "Missing phone number or event ID"}), 400
-
-    # MPESA Sandbox Credentials
-    consumer_key = 'vPjNE2DDtxf31SVukwq47FhdNDhKW90iBcX2QxM53L7RE2XE'
-    consumer_secret = 'kXiVnuR3Zp9eWZVnTDyTCMAGbB7Au7Iwkazrwy1f5tA7DzARY0sT8jrPvwf5qtRU'
-    shortcode = '174379'
-    passkey = 'bfb279f9aa9bdbcf113b1e8e1b4e23454e97f1f1d555b24c1c2b14e4f2a9da74'
-    callback_url = 'https://yourdomain.com/payment_callback'  # You'll define this route later
-
-    # Get access token
-    auth_response = requests.get(
-        'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials',
-        auth=(consumer_key, consumer_secret)
-    )
-    access_token = auth_response.json().get('access_token')
-
-    if not access_token:
-        return jsonify({"success": False, "message": "Failed to get MPESA access token"}), 500
-
-    # Generate timestamp and password
-    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-    password = base64.b64encode((shortcode + passkey + timestamp).encode()).decode()
-
-    payload = {
-        "BusinessShortCode": shortcode,
-        "Password": password,
-        "Timestamp": timestamp,
-        "TransactionType": "CustomerPayBillOnline",
-        "Amount": amount,  # Adjust this dynamically if needed
-        "PartyA": phone,
-        "PartyB": shortcode,
-        "PhoneNumber": phone,
-        "CallBackURL": callback_url,
-        "AccountReference": event_id,
-        "TransactionDesc": f"Payment for event {event_id}"
-    }
-
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json"
-    }
-
-    response = requests.post(
-        "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest",
-        json=payload,
-        headers=headers
-    )
-
-    return jsonify(response.json())
-
 @app.errorhandler(404)
 def page_not_found(e):
     # Redirect all undefined routes to home page
     return redirect('/')
 
-@app.route('/payment_callback', methods=['POST'])
-def payment_callback():
-    data = request.get_json()
-    print("Payment callback data:", data)
-
-    # Check the payment status
-    if data.get("Body", {}).get("stkCallback", {}).get("ResultCode") == 0:
-        # Successful payment
-        print("Payment successful!")
-        # You can update your database here with payment details
-
-        return jsonify({"success": True, "message": "Payment successful"})
-    else:
-        # Payment failed
-        print("Payment failed!")
-        return jsonify({"success": False, "message": "Payment failed"})
-
-
-# Endpoint to generate a ticket for an event
-@app.route('/buy_ticket/<event_id>', methods=['POST'])
-def buy_ticket(event_id):
-    try:
-        # Fetch the user ID (you can get this from the session or request)
-        user_id = request.json.get("user_id")  # This will come from frontend
-
-        if not user_id:
-            return jsonify({"error": "User ID is required"}), 400
-
-        # Create a unique ticket ID
-        ticket_id = str(uuid.uuid4())
-
-        # Create a ticket document
-        ticket_data = {
-            "user_id": user_id,
-            "event_id": event_id,
-            "ticket_id": ticket_id,
-            "purchase_date": datetime.utcnow(),
-            "status": "purchased",  # Can be 'purchased', 'scanned', etc.
-            "ticket_url": f"/ticket/{ticket_id}"  # URL to be encoded in QRcode
-        }
-
-        # Store the ticket in Firestore
-        ticket_ref = db.collection('tickets').document(ticket_id)
-        ticket_ref.set(ticket_data)
-
-        # Respond with the ticket URL for QR code generation
-        return jsonify({"ticket_url": ticket_data["ticket_url"]}), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     print("[INFO] Starting Flask application...")
-<<<<<<< HEAD
     app.run(host="0.0.0.0", port=8080, debug=False)
-=======
-    app.run(host="0.0.0.0", port=8080, debug=True)
->>>>>>> 08dee25 (WIP: changes to app.py before merging main)
