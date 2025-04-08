@@ -118,3 +118,19 @@ document.addEventListener("DOMContentLoaded", async function () {
     await fetchLocations();
     await fetchFilteredEvents();
 });
+
+// Profile menu toggle
+document.getElementById('profile-img').addEventListener('click', function () {
+    const menu = document.getElementById('profile-menu');
+    menu.classList.toggle('hidden');
+});
+
+// Close menu when clicking outside
+document.addEventListener('click', function (event) {
+    const profileImg = document.getElementById('profile-img');
+    const profileMenu = document.getElementById('profile-menu');
+
+    if (!profileImg.contains(event.target) && !profileMenu.contains(event.target)) {
+        profileMenu.classList.add('hidden');
+    }
+});
