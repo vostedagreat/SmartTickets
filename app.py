@@ -24,6 +24,8 @@ print("[INFO] Firebase Initialized successfully.")
 
 # Load environment variables from .env file
 load_dotenv()
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = 'C:\\Users\\Sharon\\Desktop\\School\\Spring 2025\\APP4080\\SmartTickets-main\\credentials.json'
+
 
 credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 if credentials_path:

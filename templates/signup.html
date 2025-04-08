@@ -52,12 +52,6 @@
                     </select>
                     <br>
 
-                    <label for="role">Role:</label>
-                    <select id="role" name="role" required>
-                        <option value="student">Student</option>
-                        <option value="staff">Event Planner</option>
-                    </select>
-
                     <br>
                     <label for="phone">Mobile No:</label>
                     <input type="text" id="phone" name="phone" placeholder="Phone Number" required>
@@ -93,7 +87,6 @@
             const password = document.getElementById("password").value;
             const confirmPassword = document.getElementById("confirm_password").value;
             const degree = document.getElementById("degree").value;
-            const role = document.getElementById("role").value;
             const phone = document.getElementById("phone").value;
 
             console.log("[DEBUG] Form data:", {
@@ -103,7 +96,7 @@
                 password: password,
                 confirm_password: confirmPassword,
                 degree: degree,
-                role: role,
+                role: "Student",
                 phone: phone
             });
 
@@ -124,7 +117,7 @@
                     last_name: lastName,
                     email: email,
                     degree: degree,
-                    role: role,
+                    role: "Student",
                     phone: phone,
                     password: password
                 })
