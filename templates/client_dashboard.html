@@ -110,11 +110,11 @@
             try {
               const querySnapshot = await getDocs(collection(db, "events"));
               eventsContainer.innerHTML = "";
-    
+
               querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 const eventId = doc.id;
-    
+
                 if (
                   (!location || data.location === location) &&
                   (!date || data.date === date)
@@ -122,18 +122,63 @@
                   const eventCard = document.createElement("div");
                   eventCard.className = "bg-white p-4 shadow rounded-lg cursor-pointer transition hover:shadow-lg";
                   eventCard.setAttribute("data-id", eventId);
-    
+
                   eventCard.innerHTML = `
                     <img src="${data.imageUrl}" class="w-full h-48 object-cover rounded" alt="${data.eventName}">
                     <h3 class="mt-3 font-bold">${data.eventName}</h3>
                     <p class="text-sm mt-2">${data.description}</p>
                     <p class="text-sm font-semibold mt-1">${data.date} ${data.startTime} - ${data.endTime}</p>
+                    <h5 class="bluetext give-feedback">Give Feedback</h5>
+
+                    <div class="modal hidden" id="feedback_modal">
+                      <div class="modal-content">
+                        <h2></h2>
+                        <textarea id="feedback" placeholder="Give the organizer feedback about the event"></textarea><br>
+                        <button id="save_feedback" onclick="saveFeedback()">Send Feedback</button>
+                        <button id="back" onclick="document.getElementById('feedback_modal').classList.add('hidden')">Back</button>
+                      </div>
+                    </div>
                   `;
-    
-                  eventCard.addEventListener("click", () => {
-                      window.location.href = `/event_details?id=${doc.id}`; 
+
+                  // Click event to navigate to details
+                  eventCard.addEventListener("click", (e) => {
+                    if (!e.target.classList.contains("give-feedback")) {
+                      window.location.href = `/event_details?id=${doc.id}`;
+                    }
                   });
-    
+
+                  // Event listener for feedback modal toggle
+                  setTimeout(() => {
+                    const giveFeedback = eventCard.querySelector(".give-feedback");
+                    const modal = eventCard.querySelector("#feedback_modal");
+
+                    giveFeedback.addEventListener("click", (e) => {
+                      e.stopPropagation();
+                      const modalheader=modal.querySelector('h2')
+                      modalheader.innerHTML=`Give Feedback about ${data.eventName}`;
+
+                      modal.style.display='block'
+                    });
+
+                    // Prevent clicks inside modal from bubbling to eventCard
+                    modal.addEventListener("click", (e) => {
+                      e.stopPropagation();
+                    });
+
+                    modal.querySelector("#feedback").addEventListener("click", (e) => {
+                      e.stopPropagation();
+                    });
+
+                    modal.querySelector("#save_feedback").addEventListener("click", (e) => {
+                      e.stopPropagation();
+                    });
+
+                    modal.querySelector("#back").addEventListener("click", (e) => {
+                      e.stopPropagation();
+                      modal.classList.add('hidden');
+                    });
+                                    }, 0);
+
                   eventsContainer.appendChild(eventCard);
                 }
               });
@@ -141,19 +186,50 @@
               console.error("Error fetching events:", error);
             }
           }
-    
+
           searchLocation.addEventListener("change", () => {
             fetchFilteredEvents(searchLocation.value, searchDate.value);
           });
-    
+
           searchDate.addEventListener("change", () => {
             fetchFilteredEvents(searchLocation.value, searchDate.value);
           });
-    
+
           await fetchFeaturedEvent();
           await fetchLocations();
           await fetchFilteredEvents();
         });
+
+
+        window.saveFeedback = async function () {
+          const modal = document.querySelector(".modal:not(.hidden)");
+          const feedbackText = modal?.querySelector("#feedback")?.value?.trim();
+          const eventId = modal?.closest("[data-id]")?.getAttribute("data-id");
+          const userId = localStorage.getItem("user_id");
+
+          if (!feedbackText) {
+            alert("Please write some feedback before saving.");
+            return;
+          }
+
+          try {
+            await addDoc(collection(db, "feedbacks"), {
+              feedback: feedbackText,
+              event_id: eventId,
+              user_id: userId,
+              timestamp: new Date().toISOString()
+            });
+
+            alert("Thank you for your feedback!");
+
+            // Reset and close the modal
+            modal.querySelector("#feedback").value = "";
+            modal.classList.add("hidden");
+          } catch (error) {
+            console.error("Error saving feedback:", error);
+            alert("There was an error saving your feedback. Please try again.");
+          }
+        };
       </script>
 
     
