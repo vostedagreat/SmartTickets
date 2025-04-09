@@ -74,26 +74,36 @@
         </div>
 
         <div class="profile-container">
-            <img id="profile-img" src="{{ url_for('static', filename='images/main-menu.png') }}" alt="User Profile">
-            <div id="profile-menu" >
-                <ul>
-                    <li>
-                        <a href="/profile" style="display: flex; align-items: center;">
-                            <img class="list-image" src="{{ url_for('static', filename='images/user.png') }}" alt="Profile">
-                            <span>Profile</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="/client_purchases" style="display: flex; align-items: center;">
-                            <img class="list-image" src="{{ url_for('static', filename='images/shopping-bag.png') }}" alt="Purchases">
-                            <span>Purchases</span>
-                        </a>
-                    </li>
-                    <li><img class="list-image" src="{{ url_for('static', filename='images/logout.png') }}" alt="Logout">Logout</li>
-                </ul>
-            </div>
-        </div>
+    <!-- Profile Image and Menu -->
+    <img id="profile-img" src="{{ url_for('static', filename='images/main-menu.png') }}" alt="User Profile">
+
+    <!-- Profile Menu -->
+    <div id="profile-menu">
+        <ul>
+            <li>
+                <a href="/profile" class="menu-item">
+                    <img class="list-image" src="{{ url_for('static', filename='images/user.png') }}" alt="Profile">
+                    <span>Profile</span>
+                </a>
+            </li>
+            
+            <li>
+                <a href="/client_purchases" class="menu-item">
+                    <img class="list-image" src="{{ url_for('static', filename='images/shopping-bag.png') }}" alt="Purchases">
+                    <span>Purchases</span>
+                </a>
+            </li>
+
+            <!-- Logout Button with Link -->
+            <li>
+                <a href="/login" class="menu-item logout">
+                    <img class="list-image" src="{{ url_for('static', filename='images/logout.png') }}" alt="Logout">
+                    <span>Logout</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
     </header>
     
     <!-- Search Bar -->
