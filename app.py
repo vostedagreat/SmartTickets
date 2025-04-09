@@ -45,6 +45,7 @@ if GMAIL_USER and GMAIL_PASS:
 else:
     print("[WARNING] Gmail credentials are missing or incorrect.")
 
+
 def generate_qr_code(data, filename="qrcode.png"):
     try:
         print("[INFO] Generating QR code...")
@@ -62,6 +63,7 @@ def generate_qr_code(data, filename="qrcode.png"):
     except Exception as e:
         print(f"[ERROR] QR Code generation failed: {e}")
         return None
+
 
 def send_email(recipient, subject, body, qr_url):
     print(f"[INFO] Preparing to send email to {recipient}...")
@@ -97,12 +99,14 @@ def send_email(recipient, subject, body, qr_url):
         print(f"[ERROR] Failed to send email: {e}")
         return False
 
+
 def get_mpesa_access_token():
     url = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
     consumer_key = os.getenv("MPESA_CONSUMER_KEY")
     consumer_secret = os.getenv("MPESA_CONSUMER_SECRET")
     response = requests.get(url, auth=(consumer_key, consumer_secret))
     return response.json()["access_token"]
+
 
 @app.route("/stk_push", methods=["POST"])
 def stk_push():
@@ -146,6 +150,7 @@ def stk_push():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @app.route("/mpesa-callback", methods=["POST"])
 def mpesa_callback():
     try:
@@ -180,6 +185,7 @@ def mpesa_callback():
     except Exception as e:
         print(f"[ERROR] in /mpesa-callback: {e}")
         return jsonify({"error": str(e)}), 500
+
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -221,6 +227,7 @@ def signup():
     elif request.method == "GET":
         return render_template("signup.html")
 
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     try:
@@ -246,6 +253,7 @@ def login():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
+
 @app.route("/get_user_role", methods=["POST"])
 def get_user_role():
     try:
@@ -260,9 +268,11 @@ def get_user_role():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
+
 @app.route("/index")
 def index():
     return render_template('index.html')
+
 
 @app.route("/send_qr", methods=["POST"])
 def send_qr():
@@ -295,35 +305,42 @@ def send_qr():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @app.route('/', methods=['GET', 'POST'])
 def home():
     return render_template('login.html')
+
 
 @app.route('/admin_dashboard', methods=['GET', 'POST'])
 def admin_dashboard():
     return render_template('admin_dashboard.html')
 
+
 @app.route('/admin_checkin', methods=['GET', 'POST'])
 def admin_checkin():
     return render_template('admin_checkin.html')
+
 
 @app.route('/admin_feedback', methods=['GET', 'POST'])
 def admin_feedback():
     return render_template('admin_feedback.html')
 
+
 @app.route('/client_dashboard', methods=['GET', 'POST'])
 def client_dashboard():
     return render_template('client_dashboard.html')
+
 
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
     return render_template('profile.html')
 
+
 @app.route('/client_purchases', methods=['GET', 'POST'])
 def client_purchases():
     return render_template('client_purchases.html')
 
+
 if __name__ == "__main__":
     print("[INFO] Starting Flask application...")
     app.run(host="0.0.0.0", port=8080, debug=False)
-
