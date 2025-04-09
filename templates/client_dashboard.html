@@ -7,6 +7,37 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='client_dashboard.css') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        async function sendTicketRequest() {
+            const email = prompt("Please enter your email:");
+            if (!email) return alert("Email is required to receive a ticket!");
+
+            const ticketInfo = {
+                event: "BLACK HISTORY MONTH",
+                date: "2024-02-14",
+                location: "USIU-Africa Campus",
+                description: "Talk on Black History and Cultural Heritage"
+            };
+
+            try {
+                const response = await fetch("http://localhost:8000/send_qr", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ email: email, ticket_info: ticketInfo })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert(result.message);
+                } else {
+                    alert("Failed to send ticket: " + result.error);
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("An unexpected error occurred.");
+            }
+        }
 
         document.addEventListener("DOMContentLoaded", function() {
             const profileImg = document.getElementById("profile-img");
@@ -39,7 +70,7 @@
         <div class="header-content">
             <h1 class="text-6xl font-bold">BLACK HISTORY MONTH</h1>
             <p class="mt-4 text-lg">Talk on Black History and Cultural Heritage</p>
-            <button class="mt-4 bg-pink-500 px-6 py-2 text-white rounded-full">Get Ticket</button>
+            <button onclick="sendTicketRequest()" class="mt-4 bg-pink-500 px-6 py-2 text-white rounded-full">Get Ticket</button>
         </div>
 
         <div class="profile-container">
