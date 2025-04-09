@@ -1,4 +1,4 @@
-document.getElementById("signupForm").addEventListener("submit", function (event) {
+document.getElementById("signupForm").addEventListener("submit", function(event) {
     console.log("[DEBUG] Submit button clicked.");
     event.preventDefault();
 
@@ -8,7 +8,6 @@ document.getElementById("signupForm").addEventListener("submit", function (event
     const password = document.getElementById("password").value;
     const confirmPassword = document.getElementById("confirm_password").value;
     const degree = document.getElementById("degree").value;
-    const role = document.getElementById("role").value;
     const phone = document.getElementById("phone").value;
 
     console.log("[DEBUG] Form data:", {
@@ -18,7 +17,7 @@ document.getElementById("signupForm").addEventListener("submit", function (event
         password: password,
         confirm_password: confirmPassword,
         degree: degree,
-        role: role,
+        role: "Student",
         phone: phone
     });
 
@@ -39,26 +38,26 @@ document.getElementById("signupForm").addEventListener("submit", function (event
             last_name: lastName,
             email: email,
             degree: degree,
-            role: role,
+            role: "Student",
             phone: phone,
             password: password
         })
     })
-        .then((response) => {
-            console.log("[DEBUG] Backend response received:", response);
-            if (response.ok) {
-                console.log("[SUCCESS] Signup successful.");
-                alert("Signup successful! You can now log in.");
-                window.location.href = "/login";
-            } else {
-                response.json().then((data) => {
-                    console.log("[ERROR] Backend returned error:", data);
-                    alert(`Signup failed: ${data.error}`);
-                });
-            }
-        })
-        .catch((error) => {
-            console.error("[ERROR] Signup failed:", error);
-            alert("An unexpected error occurred. Please try again.");
-        });
+    .then((response) => {
+        console.log("[DEBUG] Backend response received:", response);
+        if (response.ok) {
+            console.log("[SUCCESS] Signup successful.");
+            alert("Signup successful! You can now log in.");
+            window.location.href = "/login";
+        } else {
+            response.json().then((data) => {
+                console.log("[ERROR] Backend returned error:", data);
+                alert(`Signup failed: ${data.error}`);
+            });
+        }
+    })
+    .catch((error) => {
+        console.error("[ERROR] Signup failed:", error);
+        alert("An unexpected error occurred. Please try again.");
+    });
 });

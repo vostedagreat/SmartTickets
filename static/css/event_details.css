@@ -1,5 +1,4 @@
-/* event_details.css */
-
+/* Global Styling */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f3f4f6;
@@ -7,98 +6,116 @@ body {
     padding: 0;
 }
 
+/* Header Styling */
 .header {
     align-content: center;
     justify-content: center;
-    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     z-index: 1000;
-    width: 100%;
-    height: 200px;
-    background:#2B3990;
+    height: 130px;
+    background: #2B3990;
     display: flex;
     justify-content: center;
     align-items: center;
     color: white;
     font-size: 34px;
     font-weight: bold;
+    position: fixed;
+   
 }
-.header h3{
+
+.header h3 {
     margin-right: 590px;
 }
-#back{
+
+#back {
     margin-right: 600px;
     width: 40px;
     height: 40px;
 }
-#event-info{
-    margin-top: 300px;
-    margin-left: 50px;
-    font-size: 20px;
-    
+
+/* Event Container */
+.event-container {
+    /* Added padding to avoid content overlap */
+    padding-top: 180px; 
+    max-width: 48rem;
+    margin-top: 200px;
+    margin-left: 400px;
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.container {
-    margin-top: 100px;
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 2rem;
-    background-color: white;
-    border-radius: 1rem;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+/* Event Info Section */
+#event-info {
+    margin-bottom: 2rem;
+}
+
+.event-name {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 0.5rem;
+}
+
+.event-name-label {
+    font-size: 1rem;
+    color: #4a5568;
 }
 
 .event-image {
     width: 100%;
     border-radius: 0.75rem;
-    margin-bottom: 1.5rem;
-    object-fit: cover;
-    max-height: 400px;
-}
-
-.event-title {
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: #1f2937; /* gray-800 */
-    margin-bottom: 1rem;
+    margin-top: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .event-description {
     font-size: 1.125rem;
-    color: #4b5563; /* gray-600 */
-    margin-bottom: 2rem;
-    line-height: 1.6;
+    color: #4a5568;
+    margin-top: 1.25rem;
 }
 
-.event-meta {
-    margin-bottom: 2rem;
+.event-location {
     font-size: 1rem;
-    color: #374151; /* gray-700 */
+    color: #718096;
+    margin-top: 0.5rem;
 }
 
-.event-meta span {
-    display: block;
-    margin-bottom: 0.5rem;
+/* Price Section */
+.event-price-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.price-label {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2f855a;
+}
+
+.price-text {
+    font-size: 1.125rem;
+    color: #48bb78;
+    font-weight: 700;
 }
 
 .pay-button {
-    display: inline-block;
-    padding: 0.75rem 2rem;
-    background-color: #ec4899; /* pink-500 */
+    background-color: #48bb78;
     color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
     font-size: 1rem;
-    font-weight: 600;
-    border: none;
-    border-radius: 9999px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    text-decoration: none;
 }
 
 .pay-button:hover {
-    background-color: #db2777; /* pink-600 */
+    background-color: #38a169;
 }
 
 .back-button {

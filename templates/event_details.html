@@ -1,31 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <title>Event Details</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/event_details.css')}}">
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <title>Event Details</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/event_details.css') }}">
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-gray-100 text-gray-800">
+  <div class="header">
+    <img src="{{ url_for('static', filename='images/back.png') }}" id="back">
+    <h3>USIU Events</h3>
+  </div>
 
-    <div class="header">
-        <img src="{{ url_for('static', filename='images/back.png') }}" id="back">
-        <h3>USIU Events</h3>
+  <div class="event-container">
+    <div id="event-info">
+      <!-- Event details will be filled dynamically -->
     </div>
 
-    <div class="max-w-3xl mx-auto my-10 bg-white p-6 rounded shadow">
-        <div id="event-info">
-            <!-- Details will be filled by JS -->
+    <div class="event-price-container">
+      <div>
+        <h4 class="price-label">Price:</h4>
+        <p id="event-price" class="price-text">Loading...</p>
+      </div>
+      <button id="payButton" class="pay-button" onclick="payForEvent()">Pay for Event</button>
+    </div>
+  </div>
+
+  <!-- React section for ticket purchase -->
+  <div id="get-ticket" class="my-8 px-4"></div>
+
+  <!-- Firebase + dynamic logic -->
+  <script type="module" src="{{ url_for('static', filename='js/event_details.js') }}"></script>
+
+  <!-- React + Babel -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Inline JSX logic -->
+  <script type="text/babel">
+    function GetTicketButton({ eventId }) {
+      const [phone, setPhone] = React.useState('');
+      const [loading, setLoading] = React.useState(false);
+      const [message, setMessage] = React.useState('');
+
+      const handleGetTicket = async () => {
+        if (!phone) {
+          setMessage('Please enter your phone number.');
+          return;
+        }
+
+        try {
+          setLoading(true);
+          setMessage('');
+          const response = await axios.post('/initiate_payment', {
+            phone,
+            event_id: eventId,
+          });
+          setMessage(response.data.ResponseDescription || 'STK push sent!');
+        } catch (err) {
+          setMessage('Payment request failed. Try again.');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      return (
+        <div className="space-y-2">
+          <input
+            type="tel"
+            placeholder="Enter Safaricom number e.g. 2547..."
+            className="p-2 border rounded w-full"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
+          <button
+            onClick={handleGetTicket}
+            disabled={loading}
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            {loading ? 'Processing...' : 'Get Ticket'}
+          </button>
+          {message && <p className="text-sm text-gray-700">{message}</p>}
         </div>
+      );
+    }
 
-        <button class="mt-6 bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
-            Pay for Event
-        </button>
-    </div>
-
-    <script type="module" src="{{ url_for('static', filename='js/event_details.js')}}"></script>
+    const eventId = new URLSearchParams(window.location.search).get('id');
+    ReactDOM.createRoot(document.getElementById('get-ticket')).render(<GetTicketButton eventId={eventId} />);
+  </script>
 </body>
-
 </html>

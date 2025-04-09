@@ -12,18 +12,22 @@ import requests
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
 from functools import wraps
+import uuid  # To generate unique ticket IDs
+from datetime import datetime
+import base64
 
-#Initialize Firebase
+# Initialize Firebase
 cred = credentials.Certificate("serviceAccountKey.json")
 firebase_admin.initialize_app(cred)
 
-#Set up Firestore client
+# Set up Firestore client
 db = firestore.client()
 
 print("[INFO] Firebase Initialized successfully.")
 
 # Load environment variables from .env file
 load_dotenv()
+
 
 credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 if credentials_path:
@@ -46,18 +50,21 @@ if GMAIL_USER and GMAIL_PASS:
 else:
     print("[WARNING] Gmail credentials are missing or incorrect.")
 
+
 def check_auth_session():
     """Centralized session verification"""
     session_cookie = request.cookies.get('firebase_session')
     if not session_cookie:
         return None
-    
+
     try:
-        decoded_token = auth.verify_session_cookie(session_cookie, check_revoked=True)
+        decoded_token = auth.verify_session_cookie(
+            session_cookie, check_revoked=True)
         user_doc = db.collection("users").document(decoded_token['uid']).get()
         return user_doc.to_dict() if user_doc.exists else None
     except (auth.InvalidSessionCookieError, auth.RevokedSessionCookieError):
         return None
+
 
 def auth_required(f):
     """Decorator for protected routes"""
@@ -68,6 +75,7 @@ def auth_required(f):
             return redirect('/login')
         return f(*args, **kwargs)
     return decorated_function
+
 
 def role_required(role):
     """Decorator for role-based access"""
@@ -80,6 +88,7 @@ def role_required(role):
             return f(*args, **kwargs)
         return decorated_function
     return decorator
+
 
 def generate_qr_code(data, filename="qrcode.png"):
     """Generates a QR Code and uploads it to Cloud Storage."""
@@ -145,8 +154,10 @@ def send_email(recipient, subject, body, qr_url):
         print(f"[ERROR] Failed to send email: {e}")
         return False
 
+
 UPLOAD_FOLDER = 'static/images'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 
 @app.route("/upload_image", methods=["POST"])
 def upload_image():
@@ -162,9 +173,11 @@ def upload_image():
     try:
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(file_path)
-        return jsonify({"message": "Image uploaded successfully", "imageUrl": f"/static/images/{file.filename}"}), 200
+        return jsonify({"message": "Image uploaded successfully",
+                        "imageUrl": f"/static/images/{file.filename}"}), 200
     except Exception as e:
         return jsonify({"error": f"Failed to upload image: {str(e)}"}), 500
+
 
 # Session Management
 @app.route('/session_login', methods=['POST'])
@@ -172,12 +185,12 @@ def session_login():
     try:
         id_token = request.json.get('idToken')
         expires_in = timedelta(hours=1)  # Shorter session duration
-        
+
         session_cookie = auth.create_session_cookie(
             id_token,
             expires_in=expires_in
         )
-        
+
         response = make_response(jsonify({"status": "success"}))
         response.set_cookie(
             'firebase_session',
@@ -192,12 +205,14 @@ def session_login():
         app.logger.error(f"Session login failed: {str(e)}")
         return jsonify({"error": "Authentication failed"}), 401
 
+
 # Logout
 @app.route('/logout')
 def logout():
     response = make_response(redirect('/login'))
     response.set_cookie('firebase_session', '', expires=0)
     return response
+
 
 # Role-based Authentication
 @app.route('/get_user_role', methods=['POST'])
@@ -212,19 +227,26 @@ def get_user_role():
         app.logger.error(f"Role fetch failed: {str(e)}")
         return jsonify({"error": str(e)}), 400
 
+
 @app.route('/', methods=['GET', 'POST'])
 def home():
     user_data = check_auth_session()
     if user_data:
-        return redirect("/admin_dashboard" if user_data['role'] == "staff" else "/client_dashboard")     
+        return redirect(
+            "/admin_dashboard" if user_data['role'] == "staff"
+            else "/client_dashboard")
     return render_template('login.html')
+
 
 @app.route('/login', methods=['GET'])
 def login():
     user_data = check_auth_session()
     if user_data:
-        return redirect("/admin_dashboard" if user_data['role'] == "staff" else "/client_dashboard")     
+        return redirect(
+            "/admin_dashboard" if user_data['role'] == "staff"
+            else "/client_dashboard")
     return render_template('login.html')
+
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -282,47 +304,58 @@ def signup():
             print(f"[ERROR] Signup failed: {e}")
             return jsonify({"error": str(e)}), 400
     elif request.method == "GET":
-        print("[DEBUG] GET request received on /signup. Rendering signup.html.")
+        print(
+            "[DEBUG] GET request received on /signup. Rendering signup.html.")
         user_data = check_auth_session()
         if user_data:
-            return redirect("/admin_dashboard" if user_data['role'] == "staff" else "/client_dashboard")     
+            return redirect(
+                "/admin_dashboard" if user_data['role'] == "staff"
+                else "/client_dashboard")
         return render_template("signup.html")
 
+
 # Protected Route
-@app.route('/admin_dashboard', methods=['GET','POST'])
+@app.route('/admin_dashboard', methods=['GET', 'POST'])
 @role_required('staff')
 def admin_dashboard():
     return render_template('admin_dashboard.html')
 
-@app.route('/admin_checkin', methods=['GET','POST'])
+
+@app.route('/admin_checkin', methods=['GET', 'POST'])
 @role_required('staff')
 def admin_checkin():
     return render_template('admin_checkin.html')
 
-@app.route('/admin_feedback', methods=['GET','POST'])
+
+@app.route('/admin_feedback', methods=['GET', 'POST'])
 @role_required('staff')
 def admin_feedback():
     return render_template('admin_feedback.html')
 
-@app.route('/client_dashboard', methods=['GET','POST'])
+
+@app.route('/client_dashboard', methods=['GET', 'POST'])
 @role_required('student')
 def client_dashboard():
     return render_template('client_dashboard.html')
 
-@app.route('/profile', methods=['GET','POST'])
+
+@app.route('/profile', methods=['GET', 'POST'])
 @role_required('student')
 def profile():
     return render_template('profile.html')
 
-@app.route('/client_purchases', methods=['GET','POST'])
+
+@app.route('/client_purchases', methods=['GET', 'POST'])
 @role_required('student')
 def client_purchases():
     return render_template('client_purchases.html')
 
-@app.route('/event_details', methods=['GET','POST'])
+
+@app.route('/event_details', methods=['GET', 'POST'])
 @role_required('student')
 def event_details():
     return render_template('event_details.html')
+
 
 @app.route("/index")
 def index():
@@ -372,10 +405,156 @@ def send_qr():
         print(f"[ERROR] Unexpected error in /send_qr: {e}")
         return jsonify({"error": str(e)}), 500
 
+
+# Endpoint to generate a ticket for an event
+@app.route('/buy_ticket/<event_id>', methods=['POST'])
+def buy_ticket(event_id):
+    try:
+        # Fetch the user ID (you can get this from the session or request)
+        user_id = request.json.get("user_id")  # This will come from frontend
+
+        if not user_id:
+            return jsonify({"error": "User ID is required"}), 400
+
+        # Create a unique ticket ID
+        ticket_id = str(uuid.uuid4())
+
+        # Create a ticket document
+        ticket_data = {
+            "user_id": user_id,
+            "event_id": event_id,
+            "ticket_id": ticket_id,
+            "purchase_date": datetime.utcnow(),
+            "status": "purchased",  # Can be 'purchased', 'scanned', etc.
+            "ticket_url": f"/ticket/{ticket_id}"  # URL to be encoded in QRcode
+        }
+
+        # Store the ticket in Firestore
+        ticket_ref = db.collection('tickets').document(ticket_id)
+        ticket_ref.set(ticket_data)
+
+        # Respond with the ticket URL for QR code generation
+        return jsonify({"ticket_url": ticket_data["ticket_url"]}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# Endpoint to retrieve ticket details (optional, for QR code validation)
+@app.route('/ticket/<ticket_id>', methods=['GET'])
+def get_ticket(ticket_id):
+    try:
+        # Retrieve ticket from Firestore
+        ticket_ref = db.collection('tickets').document(ticket_id)
+        ticket = ticket_ref.get()
+
+        if ticket.exists:
+            return jsonify(ticket.to_dict()), 200
+        else:
+            return jsonify({"error": "Ticket not found"}), 404
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/ticketing', methods=['GET'])
+def ticketing():
+    return '''
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Event Ticketing</title>
+    </head>
+    <body>
+        <h1>Event Ticketing System</h1>
+
+        <!-- Form to Buy Ticket -->
+        <section>
+            <h2>Buy Ticket</h2>
+            <form id="buyTicketForm">
+                <label for="event_id">Event ID:</label>
+                <input type="text" id="event_id" name="event_id" required><br><br>
+
+                <label for="user_id">User ID:</label>
+                <input type="text" id="user_id" name="user_id" required><br><br>
+
+                <button type="submit">Buy Ticket</button>
+            </form>
+            <div id="ticketResponse"></div>
+        </section>
+
+        <!-- Form to Retrieve Ticket -->
+        <section>
+            <h2>Retrieve Ticket</h2>
+            <form id="getTicketForm">
+                <label for="ticket_id">Ticket ID:</label>
+                <input type="text" id="ticket_id" name="ticket_id" required><br><br>
+
+                <button type="submit">Get Ticket</button>
+            </form>
+            <div id="ticketDetails"></div>
+        </section>
+
+        <script>
+            // Handle Buy Ticket Form Submission
+            document.getElementById('buyTicketForm').addEventListener('submit', async function(event) {
+                event.preventDefault();
+                const event_id = document.getElementById('event_id').value;
+                const user_id = document.getElementById('user_id').value;
+
+                const response = await fetch(`/buy_ticket/${event_id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ user_id: user_id })
+                });
+
+                const result = await response.json();
+                const ticketResponse = document.getElementById('ticketResponse');
+
+                if (response.ok) {
+                    ticketResponse.innerHTML = `<p>Ticket purchased successfully. Access it <a href="${result.ticket_url}" target="_blank">here</a>.</p>`;
+                } else {
+                    ticketResponse.innerHTML = `<p>Error: ${result.error}</p>`;
+                }
+            });
+
+            // Handle Get Ticket Form Submission
+            document.getElementById('getTicketForm').addEventListener('submit', async function(event) {
+                event.preventDefault();
+                const ticket_id = document.getElementById('ticket_id').value;
+
+                const response = await fetch(`/ticket/${ticket_id}`, {
+                    method: 'GET'
+                });
+
+                const result = await response.json();
+                const ticketDetails = document.getElementById('ticketDetails');
+
+                if (response.ok) {
+                    ticketDetails.innerHTML = `<p>Ticket ID: ${result.ticket_id}</p>
+                                               <p>Event ID: ${result.event_id}</p>
+                                               <p>User ID: ${result.user_id}</p>
+                                               <p>Status: ${result.status}</p>
+                                               <p>Purchase Date: ${result.purchase_date}</p>`;
+                } else {
+                    ticketDetails.innerHTML = `<p>Error: ${result.error}</p>`;
+                }
+            });
+        </script>
+    </body>
+    </html>
+    '''
+
+
 @app.errorhandler(404)
 def page_not_found(e):
     # Redirect all undefined routes to home page
     return redirect('/')
+
 
 if __name__ == "__main__":
     print("[INFO] Starting Flask application...")

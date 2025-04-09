@@ -24,15 +24,15 @@ document.addEventListener("DOMContentLoaded", async function () {
                 const row = document.createElement("tr");
 
                 row.innerHTML = `
-                    <td>${data.eventName}</td>
-                    <td>${data.date} ${data.startTime} - ${data.endTime}</td>
-                    <td>${data.location}</td>
-                    <td>${data.price}</td>
-                    <td>
-                        <button class="edit-btn" data-id="${doc.id}">Edit</button>
-                        <button class="delete-btn" data-id="${doc.id}">Delete</button>
-                    </td>
-                `;
+                            <td>${data.eventName}</td>
+                            <td>${data.date} ${data.startTime} - ${data.endTime}</td>
+                            <td>${data.location}</td>
+                            <td>${data.price}</td>
+                            <td>
+                                <button id="editbtn" class="edit-btn" data-id="${doc.id}">Edit</button>
+                                <button id="deletebtn" class="delete-btn" data-id="${doc.id}">Delete</button>
+                            </td>
+                        `;
 
                 eventsTable.appendChild(row);
             });
@@ -155,11 +155,18 @@ document.addEventListener("DOMContentLoaded", async function () {
                     imageUrl: imageUrl, //Add the image URL here
                 });
                 console.log("Event added successfully with ID:", docRef.id);
-                alert("Event created successfully!");
+                messageContainer.textContent = "Event Has been created successfully!";
+                messageContainer.style.color = "green";
+                messageContainer.style.display = "block";
             }
 
-            eventModal.style.display = "none"; //Close the modal
-            await fetchEvents(); //Refresh the table
+            setTimeout(() => {
+                eventModal.style.display = "none"; //Close the modal
+                //Hide message after 3 seconds
+            }, 3000);
+            await fetchEvents();
+
+            //Refresh the table
         } catch (error) {
             console.error("Error updating/creating event:", error);
             alert("Failed to save event details.");

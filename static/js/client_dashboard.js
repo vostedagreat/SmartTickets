@@ -34,8 +34,10 @@ document.addEventListener("DOMContentLoaded", async function () {
                 headerContent.innerHTML = `
                   <h1 class="text-6xl font-bold">${featuredEvent.eventName}</h1>
                   <p class="mt-4 text-lg">${featuredEvent.description}</p>
-                  <a href="/event_details/${featuredId}" class="mt-4 inline-block bg-pink-500 px-6 py-2 text-white rounded-full">Get Ticket</a>
-                `;
+                  <a href="javascript:void(0);" id="buy-ticket-btn" class="mt-4 inline-block bg-pink-500 px-6 py-2 text-white rounded-full">Get Ticket</a>                `;
+                document.getElementById("buy-ticket-btn").addEventListener("click", () => {
+                    showPhoneNumberPrompt(featuredId);
+                });
             } else {
                 headerContent.innerHTML = `
                   <h1 class="text-6xl font-bold">No Events Found</h1>
@@ -45,6 +47,31 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         } catch (error) {
             console.error("Error fetching featured event:", error);
+        }
+    }
+
+    function showPhoneNumberPrompt(featuredId) {
+        const phone = prompt("Enter your phone number to purchase the ticket:");
+        if (phone) {
+            fetch("/initiate_payment", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ phone, event_id: featuredId })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("Payment prompt sent to your phone. Complete the payment to receive your ticket.");
+                    } else {
+                        alert("Error: " + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error initiating payment:", error);
+                    alert("There was an error initiating the payment. Please try again.");
+                });
         }
     }
 
@@ -92,11 +119,56 @@ document.addEventListener("DOMContentLoaded", async function () {
                     <h3 class="mt-3 font-bold">${data.eventName}</h3>
                     <p class="text-sm mt-2">${data.description}</p>
                     <p class="text-sm font-semibold mt-1">${data.date} ${data.startTime} - ${data.endTime}</p>
+                    <h5 class="bluetext give-feedback">Give Feedback</h5>
+
+                    <div class="modal hidden" id="feedback_modal">
+                      <div class="modal-content">
+                        <h2></h2>
+                        <textarea id="feedback" placeholder="Give the organizer feedback about the event"></textarea><br>
+                        <button id="save_feedback" onclick="saveFeedback()">Send Feedback</button>
+                        <button id="back" onclick="document.getElementById('feedback_modal').classList.add('hidden')">Back</button>
+                      </div>
+                    </div>
                   `;
 
-                    eventCard.addEventListener("click", () => {
-                        window.location.href = `/event_details?id=${doc.id}`;
+                    // Click event to navigate to details
+                    eventCard.addEventListener("click", (e) => {
+                        if (!e.target.classList.contains("give-feedback")) {
+                            window.location.href = `/event_details?id=${doc.id}`;
+                        }
                     });
+
+                    // Event listener for feedback modal toggle
+                    setTimeout(() => {
+                        const giveFeedback = eventCard.querySelector(".give-feedback");
+                        const modal = eventCard.querySelector("#feedback_modal");
+
+                        giveFeedback.addEventListener("click", (e) => {
+                            e.stopPropagation();
+                            const modalheader = modal.querySelector('h2')
+                            modalheader.innerHTML = `Give Feedback about ${data.eventName}`;
+
+                            modal.style.display = 'block'
+                        });
+
+                        // Prevent clicks inside modal from bubbling to eventCard
+                        modal.addEventListener("click", (e) => {
+                            e.stopPropagation();
+                        });
+
+                        modal.querySelector("#feedback").addEventListener("click", (e) => {
+                            e.stopPropagation();
+                        });
+
+                        modal.querySelector("#save_feedback").addEventListener("click", (e) => {
+                            e.stopPropagation();
+                        });
+
+                        modal.querySelector("#back").addEventListener("click", (e) => {
+                            e.stopPropagation();
+                            modal.classList.add('hidden');
+                        });
+                    }, 0);
 
                     eventsContainer.appendChild(eventCard);
                 }
@@ -119,18 +191,33 @@ document.addEventListener("DOMContentLoaded", async function () {
     await fetchFilteredEvents();
 });
 
-// Profile menu toggle
-document.getElementById('profile-img').addEventListener('click', function () {
-    const menu = document.getElementById('profile-menu');
-    menu.classList.toggle('hidden');
-});
 
-// Close menu when clicking outside
-document.addEventListener('click', function (event) {
-    const profileImg = document.getElementById('profile-img');
-    const profileMenu = document.getElementById('profile-menu');
+window.saveFeedback = async function () {
+    const modal = document.querySelector(".modal:not(.hidden)");
+    const feedbackText = modal?.querySelector("#feedback")?.value?.trim();
+    const eventId = modal?.closest("[data-id]")?.getAttribute("data-id");
+    const userId = localStorage.getItem("user_id");
 
-    if (!profileImg.contains(event.target) && !profileMenu.contains(event.target)) {
-        profileMenu.classList.add('hidden');
+    if (!feedbackText) {
+        alert("Please write some feedback before saving.");
+        return;
     }
-});
+
+    try {
+        await addDoc(collection(db, "feedbacks"), {
+            feedback: feedbackText,
+            event_id: eventId,
+            user_id: userId,
+            timestamp: new Date().toISOString()
+        });
+
+        alert("Thank you for your feedback!");
+
+        // Reset and close the modal
+        modal.querySelector("#feedback").value = "";
+        modal.classList.add("hidden");
+    } catch (error) {
+        console.error("Error saving feedback:", error);
+        alert("There was an error saving your feedback. Please try again.");
+    }
+};
