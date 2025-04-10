@@ -6,25 +6,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>USIU Events</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/client_purchases.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/back.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 </head>
 
 <body>
     <div class="header">
-        <img src="{{ url_for('static', filename='images/back.png') }}" id="back">
+        <a href="{{ url_for('client_dashboard') }}" class="back-link">
+            <img src="{{ url_for('static', filename='images/back.png') }}" id="back">
+        </a>
         <h3>USIU Events</h3>
     </div>
 
     <div class="container">
-        <!-- Upcoming Events -->
         <h2 class="section-title">Upcoming Events →</h2>
         <div class="events-list" id="upcoming-events"></div>
 
-        <!-- Past Events -->
         <h2 class="section-title">← Past Events</h2>
         <div class="events-list" id="past-events"></div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/client_purchases.js') }}"></script>
+    <!-- Modal for QR Code Display -->
+    <div id="qrModal" class="modal">
+        <div class="modal-box">
+            <span id="closeModal" class="close-btn">&times;</span>
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <script type="module" src="{{ url_for('static', filename='js/client_purchases.js') }}"></script>
 </body>
 
 </html>

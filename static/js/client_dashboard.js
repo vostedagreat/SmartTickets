@@ -5,6 +5,24 @@ import { getFirestore, collection, getDocs } from "https://www.gstatic.com/fireb
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// Logout function
+async function handleLogout() {
+    try {
+        const response = await fetch('/logout', {
+            method: 'GET',
+            credentials: 'same-origin'
+        });
+
+        if (response.ok || response.redirected) {
+            window.location.href = '/login';
+        } else {
+            throw new Error('Logout failed');
+        }
+    } catch (error) {
+        console.error('Logout error:', error);
+    }
+}
+
 document.addEventListener("DOMContentLoaded", async function () {
     const headerContent = document.querySelector(".header-content");
     const eventsContainer = document.querySelector(".grid");
@@ -32,17 +50,32 @@ document.addEventListener("DOMContentLoaded", async function () {
 
             if (featuredEvent) {
                 headerContent.innerHTML = `
-                  <h1 class="text-6xl font-bold">${featuredEvent.eventName}</h1>
-                  <p class="mt-4 text-lg">${featuredEvent.description}</p>
-                  <a href="javascript:void(0);" id="buy-ticket-btn" class="mt-4 inline-block bg-pink-500 px-6 py-2 text-white rounded-full">Get Ticket</a>                `;
-                document.getElementById("buy-ticket-btn").addEventListener("click", () => {
-                    showPhoneNumberPrompt(featuredId);
-                });
+                  <div class="text-center px-4 sm:px-10 py-12 max-w-3xl mx-auto">
+                    <h1 class="text-4xl sm:text-6xl font-extrabold text-white leading-tight drop-shadow">
+                      ${featuredEvent.eventName}
+                    </h1>
+                    <div>
+                        <a href="/event_details?id=${featuredId}" 
+                            class="mt-6 inline-block bg-pink-600 hover:bg-pink-700 text-white font-semibold px-6 py-3 rounded-full shadow transition duration-300">
+                            Get Ticket
+                        </a>
+                    </div>
+                  </div>
+                `;
             } else {
                 headerContent.innerHTML = `
-                  <h1 class="text-6xl font-bold">No Events Found</h1>
-                  <p class="mt-4 text-lg">Please check back later!</p>
-                  <button class="mt-4 bg-pink-500 px-6 py-2 text-white rounded-full disabled">Unavailable</button>
+                  <div class="text-center px-4 sm:px-10 py-12 max-w-2xl mx-auto">
+                    <h1 class="text-4xl sm:text-6xl font-extrabold text-white leading-tight drop-shadow">
+                      No Events Found
+                    </h1>
+                    <p class="mt-6 text-lg sm:text-xl text-gray-300">
+                      Please check back later!
+                    </p>
+                    <button disabled 
+                            class="mt-6 bg-pink-400 text-white font-medium px-6 py-3 rounded-full opacity-70 cursor-not-allowed">
+                      Unavailable
+                    </button>
+                  </div>
                 `;
             }
         } catch (error) {
@@ -50,52 +83,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
-    function showPhoneNumberPrompt(featuredId) {
-        const phone = prompt("Enter your phone number to purchase the ticket:");
-        if (phone) {
-            fetch("/initiate_payment", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ phone, event_id: featuredId })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert("Payment prompt sent to your phone. Complete the payment to receive your ticket.");
-                    } else {
-                        alert("Error: " + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error("Error initiating payment:", error);
-                    alert("There was an error initiating the payment. Please try again.");
-                });
-        }
-    }
-
-    async function fetchLocations() {
-        try {
-            const querySnapshot = await getDocs(collection(db, "events"));
-            const locationSet = new Set();
-
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                if (data.location) locationSet.add(data.location);
-            });
-
-            searchLocation.innerHTML = `<option value="">All Locations</option>`;
-            locationSet.forEach((location) => {
-                const option = document.createElement("option");
-                option.value = location;
-                option.textContent = location;
-                searchLocation.appendChild(option);
-            });
-        } catch (error) {
-            console.error("Error fetching locations:", error);
-        }
-    }
+    // Add event listener for logout
+    const logoutItem = profileMenu.querySelector("li:last-child");
+    logoutItem.addEventListener("click", handleLogout);
 
     async function fetchFilteredEvents(location = "", date = "") {
         try {
@@ -115,60 +105,24 @@ document.addEventListener("DOMContentLoaded", async function () {
                     eventCard.setAttribute("data-id", eventId);
 
                     eventCard.innerHTML = `
-                    <img src="${data.imageUrl}" class="w-full h-48 object-cover rounded" alt="${data.eventName}">
-                    <h3 class="mt-3 font-bold">${data.eventName}</h3>
-                    <p class="text-sm mt-2">${data.description}</p>
-                    <p class="text-sm font-semibold mt-1">${data.date} ${data.startTime} - ${data.endTime}</p>
-                    <h5 class="bluetext give-feedback">Give Feedback</h5>
+              <div class="flex flex-col h-full">
+                <img src="${data.imageUrl}" alt="${data.eventName}" class="w-full h-48 object-cover rounded-md mb-4">
+                <div class="flex-1">
+                  <h3 class="text-xl font-semibold text-gray-800 mb-2 line-clamp-1">${data.eventName}</h3>
+                  <p class="text-gray-600 text-sm mb-2 line-clamp-2">${data.description || 'No description available.'}</p>
+                </div>
+                <div class="mt-auto pt-2 border-t text-sm text-gray-700 font-medium">
+                  📍 ${data.location || 'Unknown Location'}<br>
+                  📅 ${data.date} | 🕒 ${data.startTime} - ${data.endTime}
+                </div>
+              </div>
+            `;
 
-                    <div class="modal hidden" id="feedback_modal">
-                      <div class="modal-content">
-                        <h2></h2>
-                        <textarea id="feedback" placeholder="Give the organizer feedback about the event"></textarea><br>
-                        <button id="save_feedback" onclick="saveFeedback()">Send Feedback</button>
-                        <button id="back" onclick="document.getElementById('feedback_modal').classList.add('hidden')">Back</button>
-                      </div>
-                    </div>
-                  `;
 
                     // Click event to navigate to details
-                    eventCard.addEventListener("click", (e) => {
-                        if (!e.target.classList.contains("give-feedback")) {
-                            window.location.href = `/event_details?id=${doc.id}`;
-                        }
+                    eventCard.addEventListener("click", () => {
+                        window.location.href = `/event_details?id=${eventId}`;
                     });
-
-                    // Event listener for feedback modal toggle
-                    setTimeout(() => {
-                        const giveFeedback = eventCard.querySelector(".give-feedback");
-                        const modal = eventCard.querySelector("#feedback_modal");
-
-                        giveFeedback.addEventListener("click", (e) => {
-                            e.stopPropagation();
-                            const modalheader = modal.querySelector('h2')
-                            modalheader.innerHTML = `Give Feedback about ${data.eventName}`;
-
-                            modal.style.display = 'block'
-                        });
-
-                        // Prevent clicks inside modal from bubbling to eventCard
-                        modal.addEventListener("click", (e) => {
-                            e.stopPropagation();
-                        });
-
-                        modal.querySelector("#feedback").addEventListener("click", (e) => {
-                            e.stopPropagation();
-                        });
-
-                        modal.querySelector("#save_feedback").addEventListener("click", (e) => {
-                            e.stopPropagation();
-                        });
-
-                        modal.querySelector("#back").addEventListener("click", (e) => {
-                            e.stopPropagation();
-                            modal.classList.add('hidden');
-                        });
-                    }, 0);
 
                     eventsContainer.appendChild(eventCard);
                 }
@@ -178,6 +132,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
+    // Search event filtering
     searchLocation.addEventListener("change", () => {
         fetchFilteredEvents(searchLocation.value, searchDate.value);
     });
@@ -187,37 +142,5 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
 
     await fetchFeaturedEvent();
-    await fetchLocations();
     await fetchFilteredEvents();
 });
-
-
-window.saveFeedback = async function () {
-    const modal = document.querySelector(".modal:not(.hidden)");
-    const feedbackText = modal?.querySelector("#feedback")?.value?.trim();
-    const eventId = modal?.closest("[data-id]")?.getAttribute("data-id");
-    const userId = localStorage.getItem("user_id");
-
-    if (!feedbackText) {
-        alert("Please write some feedback before saving.");
-        return;
-    }
-
-    try {
-        await addDoc(collection(db, "feedbacks"), {
-            feedback: feedbackText,
-            event_id: eventId,
-            user_id: userId,
-            timestamp: new Date().toISOString()
-        });
-
-        alert("Thank you for your feedback!");
-
-        // Reset and close the modal
-        modal.querySelector("#feedback").value = "";
-        modal.classList.add("hidden");
-    } catch (error) {
-        console.error("Error saving feedback:", error);
-        alert("There was an error saving your feedback. Please try again.");
-    }
-};
