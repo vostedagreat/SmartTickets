@@ -1,6 +1,10 @@
 document.getElementById("signupForm").addEventListener("submit", function(event) {
-    console.log("[DEBUG] Submit button clicked.");
     event.preventDefault();
+    console.log("[DEBUG] Submit button clicked.");
+
+    const signupButton = document.querySelector("#signupForm button[type='submit']");
+    signupButton.disabled = true;
+    signupButton.textContent = "Creating account...";
 
     const firstName = document.getElementById("first_name").value;
     const lastName = document.getElementById("last_name").value;
@@ -24,6 +28,8 @@ document.getElementById("signupForm").addEventListener("submit", function(event)
     if (password !== confirmPassword) {
         console.log("[ERROR] Passwords do not match.");
         alert("Passwords do not match. Please try again.");
+        signupButton.disabled = false;
+        signupButton.textContent = "Sign Up";
         return;
     }
 
@@ -53,11 +59,15 @@ document.getElementById("signupForm").addEventListener("submit", function(event)
             response.json().then((data) => {
                 console.log("[ERROR] Backend returned error:", data);
                 alert(`Signup failed: ${data.error}`);
+                signupButton.disabled = false;
+                signupButton.textContent = "Sign Up";
             });
         }
     })
     .catch((error) => {
         console.error("[ERROR] Signup failed:", error);
         alert("An unexpected error occurred. Please try again.");
+        signupButton.disabled = false;
+        signupButton.textContent = "Sign Up";
     });
 });

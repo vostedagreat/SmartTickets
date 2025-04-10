@@ -368,74 +368,27 @@ def send_qr():
     print("[INFO] /send_qr endpoint hit.")
     try:
         data = request.get_json()
-        print(f"[INFO] Received request data: {data}")
-
         user_email = data.get("email")
         ticket_info = data.get("ticket_info")
 
         if not user_email or not ticket_info:
-            print("[ERROR] Missing email or ticket_info in request.")
             return jsonify({"error": "Missing email or ticket_info"}), 400
 
-        # Format the ticket info into a JSON object
-        ticket_data = {
-            "user_email": user_email,
-            "ticket_info": ticket_info
-        }
-        ticket_json = json.dumps(ticket_data)
+        # No need to generate QR code again, we already have it from the frontend
+        qr_url = ticket_info.get("qrCodeUrl")
 
-        print("[INFO] Generating QR code...")
-        qr_url = generate_qr_code(ticket_json)
         if not qr_url:
-            print("[ERROR] QR code generation failed.")
-            return jsonify({"error": "QR code generation failed"}), 500
+            return jsonify({"error": "QR code URL is missing"}), 400
 
-        print("[INFO] Sending email with QR code...")
+        # Send email with the provided QR code URL
         if send_email(user_email, "Your Event Ticket",
                       "Here is your event ticket with QR code.",
                       qr_url):
-            print("[SUCCESS] QR code sent successfully.")
             return jsonify({
                 "message": "QR code with ticket info sent successfully!"
             })
         else:
-            print("[ERROR] Email sending failed.")
             return jsonify({"error": "Failed to send email"}), 500
-    except Exception as e:
-        print(f"[ERROR] Unexpected error in /send_qr: {e}")
-        return jsonify({"error": str(e)}), 500
-
-
-# Endpoint to generate a ticket for an event
-@app.route('/buy_ticket/<event_id>', methods=['POST'])
-def buy_ticket(event_id):
-    try:
-        # Fetch the user ID (you can get this from the session or request)
-        user_id = request.json.get("user_id")  # This will come from frontend
-
-        if not user_id:
-            return jsonify({"error": "User ID is required"}), 400
-
-        # Create a unique ticket ID
-        ticket_id = str(uuid.uuid4())
-
-        # Create a ticket document
-        ticket_data = {
-            "user_id": user_id,
-            "event_id": event_id,
-            "ticket_id": ticket_id,
-            "purchase_date": datetime.utcnow(),
-            "status": "purchased",  # Can be 'purchased', 'scanned', etc.
-            "ticket_url": f"/ticket/{ticket_id}"  # URL to be encoded in QRcode
-        }
-
-        # Store the ticket in Firestore
-        ticket_ref = db.collection('tickets').document(ticket_id)
-        ticket_ref.set(ticket_data)
-
-        # Respond with the ticket URL for QR code generation
-        return jsonify({"ticket_url": ticket_data["ticket_url"]}), 200
-
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

@@ -3,13 +3,13 @@ function goToAdmin() {
     window.location.href = "/admin_dashboard";
 }
 
-function goToSignup() {
-    window.location.href = "/signup";
-}
-
 // Firebase login logic
 import { auth } from "/static/js/firebase-config.js";
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-auth.js";
+
+document.getElementById("signup").addEventListener("click", () => {
+    window.location.href = "/signup";
+});
 
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("loginForm");

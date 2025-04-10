@@ -23,7 +23,7 @@ body {
     font-size: 34px;
     font-weight: bold;
     position: fixed;
-   
+
 }
 
 .header h3 {
@@ -39,7 +39,7 @@ body {
 /* Event Container */
 .event-container {
     /* Added padding to avoid content overlap */
-    padding-top: 180px; 
+    padding-top: 180px;
     max-width: 48rem;
     margin-top: 200px;
     margin-left: 400px;
@@ -104,7 +104,7 @@ body {
     font-weight: 700;
 }
 
-.pay-button {
+.register-button {
     background-color: #48bb78;
     color: white;
     padding: 0.75rem 1.5rem;
@@ -114,18 +114,165 @@ body {
     transition: background-color 0.3s ease;
 }
 
-.pay-button:hover {
+.register-button:hover {
     background-color: #38a169;
+}
+
+.delist-btn {
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+delist-btn:hover {
+    background-color: #ff1e1e;
 }
 
 .back-button {
     display: inline-block;
     margin-top: 1rem;
     font-size: 0.875rem;
-    color: #3b82f6; /* blue-500 */
+    color: #3b82f6;
+    /* blue-500 */
     text-decoration: none;
 }
 
 .back-button:hover {
     text-decoration: underline;
+}
+
+/* Modal background overlay */
+.modal {
+    display: none;
+    /* Hidden by default */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    /* Darker overlay */
+    padding: 20px;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Modal content styling */
+.modal-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 450px;
+    text-align: center;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Modal header styling (QR Code section) */
+.modal-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.qr-image {
+    width: 150px;
+    height: 150px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+/* Modal body styling (event details section) */
+.modal-body {
+    margin-bottom: 20px;
+}
+
+.modal-body h4 {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.modal-body p {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.modal-body .text-gray-800 {
+    color: #333;
+}
+
+/* Modal footer and close button styling */
+.modal-footer {
+    text-align: center;
+}
+
+.close-btn {
+    background-color: #ff4c4c;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.close-btn:hover {
+    background-color: #ff1e1e;
+}
+
+/* Fade-in effect for modal */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Show modal when 'show' class is added */
+.modal.show {
+    display: flex;
+    opacity: 1;
+    visibility: visible;
+    justify-content: center;
+    align-items: center;
+}
+
+.close-btn:hover {
+    background-color: darkred;
+}
+
+#qrModal {
+    display: none;
+    /* Initially hidden */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+}
+
+#qrModal.show {
+    display: block;
+    /* Shows the modal when 'show' class is added */
 }
