@@ -14,6 +14,7 @@ SmartTickets is a ticketing system that generates QR codes for event tickets and
 - **George (Product Manager)**
 
 ## Gantt Chart & Test Cases
+https://docs.google.com/document/d/1LiwWpFp_0oeT9ExAfguphsSEU2_-F_ikFVH39zXNv6w/edit?usp=sharing
 
 ## 🚀 Live Demo  
 <img width="1234" alt="Screenshot 2025-04-10 at 11 43 46" src="https://github.com/user-attachments/assets/28c66a4b-d794-4f8b-9fa8-d46f19eff831" />
